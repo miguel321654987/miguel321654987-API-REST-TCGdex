@@ -14,23 +14,23 @@ export const getActions = (store, dispatch) => {
   };
 
   return {
-    // === 🔐 CONTROL DE SESIÓN ===
-    // 🔥 CORRECCIÓN 2: Permitimos recibir de forma opcional el ID de un modal
-    // por si el botón de logout se presionó desde dentro de una ventana flotante.
     handleLogout: (modalId = null) => {
-      // 1. Si se especifica un modal, lo cerramos de forma segura primero
+      // 1. Si hay un ID, cerramos ese modal específico de forma segura.
+      // Si no hay ID, pero puede haber backdrops huérfanos por desmontajes abruptos,
+      // ejecutar la limpieza pasando un ID genérico o adaptando tu función.
       if (modalId) {
         closeModalSafely(modalId);
+      } else {
+        // Si no hay un modal concreto, limpiamos los residuos del body de forma segura
+        // (Puedes extraer esta limpieza a una pequeña función reutilizable si lo deseas)
+        const backdrops = document.querySelectorAll(".modal-backdrop");
+        backdrops.forEach((backdrop) => backdrop.remove());
+        document.body.classList.remove("modal-open");
+        document.body.style.removeProperty("overflow");
+        document.body.style.removeProperty("padding-right");
       }
 
-      // 2. Por seguridad general, si Bootstrap dejó un fondo oscuro huérfano
-      // al desmontar componentes de forma abrupta, lo eliminamos manualmente.
-      const backdrop = document.querySelector(".modal-backdrop");
-      if (backdrop) backdrop.remove();
-      document.body.classList.remove("modal-open");
-      document.body.style.overflow = "";
-
-      // 3. Procedemos con la limpieza segura de los datos
+      // 2. Limpieza segura de los datos de sesión
       localStorage.removeItem("jwt-token");
       dispatch({ type: "LOGOUT" });
 
