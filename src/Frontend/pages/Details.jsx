@@ -15,7 +15,7 @@ export const PokemonDetail = () => {
     }
 
     // === 💡 FUNCIÓN DE LIMPIEZA (CLEANUP) ===
-    // Centralizada también en las acciones para no mutar el estado desde aquí
+    // Centralizada en actions.js para no mutar el estado desde aquí
     return () => {
       actions.limpiarDetallePokemon();
     };
@@ -46,7 +46,7 @@ export const PokemonDetail = () => {
           {/* Columna Izquierda: Imagen de la carta */}
           <div className="col-12 col-md-5 text-center">
             <div className="p-3 bg-secondary bg-opacity-10 rounded shadow-lg">
-              {/* 🔥 Limpio y directo: la acción garantiza que 'card.image' siempre existe */}
+              {/* 🔥 La acción garantiza que 'card.image' siempre existe */}
               <img
                 src={card.image}
                 className="img-fluid rounded-start"
