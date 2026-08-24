@@ -5,7 +5,7 @@ import { Link } from "react-router-dom";
 export const Home = () => {
   const { store, actions } = useGlobalReducer();
 
-  //Extraemos de forma limpia las variables directamente desde tu store global
+  //Extraemos de forma limpia las variables directamente desde store global
   const { list: pokemons, loading, error } = store.api;
 
   useEffect(() => {
