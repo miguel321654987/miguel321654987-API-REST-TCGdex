@@ -8,6 +8,14 @@
   "remoteEnv": {
     "DATABASE_URL": "postgresql://gitpod:postgres@db:5432/example"
   },
+
+  // 👇 PEGA ESTE BLOQUE EXACTAMENTE AQUÍ
+  "features": {
+    "ghcr.io/devcontainers/features/node:2": {
+      "version": "lts"
+    }
+  },
+
   "customizations": {
     "vscode": {
       "settings": {

@@ -19,15 +19,16 @@ eralchemy2 = "*"
 flask-sqlalchemy = "*"
 sqlalchemy = "*"
 flask = "*"
-flask-migrate = "*"
 flask-jwt-extended = "*"
 requests = "*"
+flask-bcrypt = "*"
+flask-migrate = "*"
 
 [requires]
 python_version = "3.13"
 
 [scripts]
-start="python -m flask --app src/app run -p 3000 -h 0.0.0.0"
+start="python -m flask --app src/app run -p 3000 -h 0.0.0.0 --no-reload"
 init="python -m flask --app src/app db init"
 migrate="python -m flask --app src/app db migrate"
 reset_db="bash ./docs/assets/reset_migrations.bash"
