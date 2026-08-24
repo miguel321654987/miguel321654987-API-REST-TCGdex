@@ -82,12 +82,12 @@ export const getActions = (store, dispatch) => {
       }
     },
 
-    // === 👾 PETICIONES DE POKÉMON (Añade esto dentro de getActions) ===
+    // === 👾 PETICIONES DETALLE POKÉMON ===
     obtenerDetallePokemon: async (id) => {
       try {
         dispatch({ type: "API_LOADING" });
 
-        // 💡 Detector definitivo para la expansión "exu" con caracteres especiales
+        // Detector de caracteres especiales PARA EL SEGUNDO POKEMON
         let idTexto = String(id).trim();
         if (
           idTexto.toLowerCase().startsWith("exu-") &&
@@ -95,7 +95,7 @@ export const getActions = (store, dispatch) => {
             idTexto.includes("%") ||
             idTexto.toLowerCase().includes("3f"))
         ) {
-          idTexto = "exu-%253F"; // Doble codificación requerida por este servidor específico
+          idTexto = "exu-%253F"; // Doble codificación requerida PARA EL SEGUNDO POKEMON
         } else {
           idTexto = encodeURIComponent(idTexto);
         }
@@ -110,8 +110,8 @@ export const getActions = (store, dispatch) => {
 
         const data = await response.json();
 
-        // 🔥 FORMATEO DEFENSIVO: Validamos la imagen aquí usando 'defaultImage'
-        // TCGdex suele estructurar la imagen de la carta como un string o dentro de un objeto dependiendo de la versión
+        // 🔥 FORMATEO DEFENSIVO: Validamos la imagen usando 'defaultImage'
+        // TCGdex suele estructurar la imagen de la carta como string o dentro de un objeto
         const imagenFinal = data.image
           ? data.image.includes("http")
             ? `${data.image}/high.png`

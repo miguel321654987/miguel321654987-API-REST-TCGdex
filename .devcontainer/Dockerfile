@@ -20,7 +20,7 @@ RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \
 RUN pip install pipenv
 
 #  Use the same path as `workspaceFolder` in `devcontainer.json`
-WORKDIR /workspaces/${localWorkspaceFolderBasename}
+WORKDIR /workspaces
 
 #  Copy Pipfile and Pipfile.lock first to leverage Docker cache
 COPY Pipfile Pipfile.lock ./
