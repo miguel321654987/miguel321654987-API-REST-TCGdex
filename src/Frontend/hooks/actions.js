@@ -110,10 +110,10 @@ export const getActions = (store, dispatch) => {
 
         const data = await response.json();
 
-        // 🔥 FORMATEO DEFENSIVO: Validamos la imagen usando 'defaultImage'
-        // TCGdex suele estructurar la imagen de la carta como string o dentro de un objeto
-        const imagenFinal = data.image
-          ? data.image.includes("http")
+        /* 🔥 FORMATEO DEFENSIVO: Validamos la imagen usando 'defaultImage'
+        TCGdex estructura la imagen de la carta como string o dentro de un objeto */
+        const imagenFinal = data.image // Operadores Ternarios Anidados,
+          ? data.image.includes("http") // se leen como secuencia de condiciones
             ? `${data.image}/high.png`
             : data.image
           : defaultImage;
