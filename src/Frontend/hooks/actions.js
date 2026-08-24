@@ -54,7 +54,7 @@ export const getActions = (store, dispatch) => {
       try {
         dispatch({ type: "API_LOADING" });
         const response = await fetch(
-          "https://api.tcgdex.net/v2/en/cards?pagination:page=1&pagination:itemsPerPage=20",
+          "https://api.tcgdex.net/v2/en/cards?pagination:page=1&pagination:itemsPerPage=24",
         );
 
         if (!response.ok)

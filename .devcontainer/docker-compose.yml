@@ -4,8 +4,8 @@ services:
       context: ..
       dockerfile: .devcontainer/Dockerfile
 
-    ports:
-      - "3000:3000"
+    #ports:
+    #  - "3000:3000"
 
     volumes:
       - ..:/workspaces:cached
@@ -14,7 +14,8 @@ services:
     extra_hosts:
       - "host.docker.internal:host-gateway"
 
-    command: pipenv run start
+      # ¡ESTA LÍNEA ES LA SOLUCIÓN! Mantiene el contenedor vivo sin levantar Flask
+    command: sleep infinity
 
   db:
     image: postgres:16
