@@ -14,8 +14,7 @@ export const PokemonDetail = () => {
       actions.obtenerDetallePokemon(id);
     }
 
-    // === 💡 FUNCIÓN DE LIMPIEZA (CLEANUP) ===
-    // Centralizada en actions.js para no mutar el estado desde aquí
+    //  FUNCIÓN DE LIMPIEZA (CLEANUP) Centralizada en actions.js
     return () => {
       actions.limpiarDetallePokemon();
     };
