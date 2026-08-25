@@ -63,5 +63,6 @@ export function StoreProvider({ children }) {
   );
 }
 
-/* <StoreContext.Provider value={{ store, dispatch }}> los vuelve disponibles
- para que el Hook useGlobalReducer los pueda leer */
+/* Al usar .Provider se activa el StoreContext y permite que los componentes hijos
+ accedan al estado global y al dispatch.
+ value={{ store, dispatch }}> los vuelve disponibles para useGlobalReducer */
