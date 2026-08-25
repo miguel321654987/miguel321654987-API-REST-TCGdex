@@ -6,6 +6,8 @@ import { getActions } from "./actions.js";
 
 export const StoreContext = createContext(null);
 
+/* useGlobalReducer es el mecanismo para extraer los datos */
+
 /* Se define la función del Hook. Al llamarlo dentro de un componente, 
 intenta leer el valor actual de StoreContext */
 
