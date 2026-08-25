@@ -5,6 +5,9 @@ import { StoreContext } from "../hooks/useGlobalReducer.jsx";
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:3000";
 
+/* StoreProvider es el corazón del estado global: se encarga de crear el estado, 
+modificarlo, sincronizarlo con tu base de datos y distribuirlo a toda la aplicación */
+
 export function StoreProvider({ children }) {
   const [store, dispatch] = useReducer(storeReducer, initialStore());
 
