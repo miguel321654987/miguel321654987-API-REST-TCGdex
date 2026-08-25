@@ -1,8 +1,13 @@
 import { useContext, useMemo, createContext } from "react";
 import { getActions } from "./actions.js";
 
-// Creamos y exportamos el contexto de manera limpia en el archivo del hook
+/* Se inicializa y exporta el contexto para que StoreProvider pueda usarlo
+ para envolver a la aplicación */
+
 export const StoreContext = createContext(null);
+
+/* Se define la función del Hook. Al llamarlo dentro de un componente, 
+intenta leer el valor actual de StoreContext */
 
 export default function useGlobalReducer() {
   const context = useContext(StoreContext);
