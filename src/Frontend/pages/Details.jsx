@@ -1,10 +1,9 @@
 import { useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, Link } from "react-router-dom";
 import useGlobalReducer from "../hooks/useGlobalReducer.jsx";
 
 export const PokemonDetail = () => {
   const { id } = useParams();
-  const navigate = useNavigate();
   const { store, actions } = useGlobalReducer();
 
   const { detail: card, loading, error } = store.api;
@@ -22,12 +21,9 @@ export const PokemonDetail = () => {
 
   return (
     <div className="container mt-5 text-light mb-5">
-      <button
-        className="btn btn-outline-secondary mb-4"
-        onClick={() => navigate("/")}
-      >
+      <Link to="/" className="btn btn-outline-secondary mb-4">
         ← Volver a la Colección
-      </button>
+      </Link>
 
       {loading ? (
         <div className="text-center mt-5">
