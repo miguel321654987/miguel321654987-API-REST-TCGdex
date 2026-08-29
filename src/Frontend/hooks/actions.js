@@ -171,16 +171,35 @@ export const getActions = (store, dispatch) => {
           `${BACKEND_URL}/api/favorites/user/${userId}/favorites/${pokemon.id}`,
           {
             method: "POST",
-            headers: getAuthHeaders(), // Centralizado y seguro
+            headers: getAuthHeaders(),
           },
         );
-        if (response.status === 409) return;
+
+        if (response.status === 409) {
+          // Avisamos a la UI que ya existe usando tu SET_MESSAGE global
+          dispatch({
+            type: "SET_MESSAGE",
+            payload: {
+              msg: "⚠️ Esta carta ya está en tus favoritos",
+              status: 409,
+            },
+          });
+          return;
+        }
+
         if (!response.ok)
           throw new Error("No se pudo añadir el favorito en el servidor");
 
+        // Todo bien: agregamos al estado local (dentro de favorites.list)
         dispatch({ type: "ADD_FAVORITE_STORE", payload: pokemon });
+
+        dispatch({
+          type: "SET_MESSAGE",
+          payload: { msg: "❤️ ¡Carta añadida a favoritos!", status: 200 },
+        });
       } catch (error) {
         console.error("Error al guardar favorito:", error);
+        dispatch({ type: "FAVORITES_ERROR", payload: error.message });
       }
     },
 
@@ -190,15 +209,22 @@ export const getActions = (store, dispatch) => {
           `${BACKEND_URL}/api/favorites/user/${userId}/favorites/${pokemonId}`,
           {
             method: "DELETE",
-            headers: getAuthHeaders(), // Asegura que solo el dueño borre
+            headers: getAuthHeaders(),
           },
         );
         if (!response.ok)
           throw new Error("No se pudo eliminar el favorito del servidor");
 
+        // Todo bien: removemos del estado local filtrando por ID
         dispatch({ type: "REMOVE_FAVORITE_STORE", payload: pokemonId });
+
+        dispatch({
+          type: "SET_MESSAGE",
+          payload: { msg: "🗑️ Carta eliminada de tus favoritos", status: 200 },
+        });
       } catch (error) {
         console.error("Error al eliminar favorito:", error);
+        dispatch({ type: "FAVORITES_ERROR", payload: error.message });
       }
     },
   };
