@@ -87,7 +87,6 @@ export default function storeReducer(store, action = {}) {
         },
       };
 
-    // NUEVOS CASOS INDEPENDIENTES PARA FAVORITOS:
     case "FAVORITES_LOADING":
       return {
         ...store,

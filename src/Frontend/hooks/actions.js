@@ -176,7 +176,7 @@ export const getActions = (store, dispatch) => {
         );
 
         if (response.status === 409) {
-          // Avisamos a la UI que ya existe usando tu SET_MESSAGE global
+          // Avisamos a la UI que ya existe usando SET_MESSAGE global
           dispatch({
             type: "SET_MESSAGE",
             payload: {
