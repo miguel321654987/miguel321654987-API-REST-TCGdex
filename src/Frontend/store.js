@@ -9,7 +9,11 @@ export const initialStore = () => {
       detail: null,
       error: null,
     },
-    favorites: [],
+    favorites: {
+      loading: false,
+      list: [],
+      error: null,
+    },
   };
 };
 
@@ -83,22 +87,53 @@ export default function storeReducer(store, action = {}) {
         },
       };
 
+    // NUEVOS CASOS INDEPENDIENTES PARA FAVORITOS:
+    case "FAVORITES_LOADING":
+      return {
+        ...store,
+        favorites: {
+          ...store.favorites,
+          loading: true,
+          error: null,
+        },
+      };
+
     case "SET_FAVORITES":
       return {
         ...store,
-        favorites: action.payload, // Guarda directamente el array traído de Flask
+        favorites: {
+          loading: false,
+          list: action.payload, // Guarda el array traído de Flask
+          error: null,
+        },
+      };
+
+    case "FAVORITES_ERROR":
+      return {
+        ...store,
+        favorites: {
+          ...store.favorites,
+          loading: false,
+          error: action.payload,
+        },
       };
 
     case "ADD_FAVORITE_STORE":
       return {
         ...store,
-        favorites: [...store.favorites, action.payload],
+        favorites: {
+          ...store.favorites,
+          list: [...store.favorites.list, action.payload],
+        },
       };
 
     case "REMOVE_FAVORITE_STORE":
       return {
         ...store,
-        favorites: store.favorites.filter((fav) => fav.id !== action.payload),
+        favorites: {
+          ...store.favorites,
+          list: store.favorites.list.filter((fav) => fav.id !== action.payload),
+        },
       };
 
     default:

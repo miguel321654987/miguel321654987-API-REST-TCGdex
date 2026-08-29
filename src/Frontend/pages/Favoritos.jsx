@@ -1,51 +1,24 @@
 import { useEffect } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import useGlobalReducer from "../hooks/useGlobalReducer.jsx";
 
 export const Favoritos = () => {
   const { id } = useParams();
-  const navigate = useNavigate();
-  const { store, dispatch } = useGlobalReducer();
+  const { store, actions } = useGlobalReducer();
 
   const { data: favorito, loading, error } = store.api;
 
-  // Simulamos el ID del usuario logueado (Hardcodeado a 1 para hacer las pruebas iniciales)
-  const user_id = 1;
-
   useEffect(() => {
-    const obtenerFavoritos = async () => {
-      try {
-        dispatch({ type: "API_LOADING" });
-        // Hacemos la petición a tu servidor Flask (ajusta la URL según tu entorno)
-        const response = await fetch(
-          `http://localhost:3000/api/favorites//user/${user_id}/favorites`,
-        );
-
-        if (!response.ok) {
-          throw new Error("No se pudieron cargar tus Pokémon favoritos.");
-        }
-
-        const data = await response.json();
-
-        // 💡 TRUCO: Reconstruimos la URL de la imagen usando el ID de texto oficial de TCGdex
-        const favoritosFormateados = data.map((fav) => ({
-          id: fav.id, // ej: "basep-1"
-          pokemon_name: fav.pokemon_name, // ej: "Pikachu"
-          image: `https://tcgdex.net${fav.id}/low.png`,
-        }));
-
-        dispatch({ type: "API_SUCCESS", payload: favoritosFormateados });
-      } catch (err) {
-        console.error("Error al obtener favoritos:", err);
-        dispatch({ type: "API_ERROR", payload: err.message });
-      }
-    };
-
-    obtenerFavoritos();
-  }, [dispatch]);
+    if (id) {
+      actions.obtenerDetallePokemon(id);
+    }
+  }, [id]);
 
   return (
     <div className="container text-center mt-5 text-light mb-5">
+      <Link to="/" className="btn btn-outline-secondary mb-4">
+        ← Volver a la Colección
+      </Link>
       <h1 className="mb-4 text-warning">⭐ Mis Cartas Favoritas</h1>
       <p className="text-secondary">
         Esta es tu colección privada guardada en la base de datos.
