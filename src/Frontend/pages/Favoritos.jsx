@@ -1,18 +1,20 @@
 import { useEffect } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link } from "react-router-dom";
 import useGlobalReducer from "../hooks/useGlobalReducer.jsx";
 
 export const Favoritos = () => {
-  const { id } = useParams();
   const { store, actions } = useGlobalReducer();
 
-  const { data: favorito, loading, error } = store.api;
+  // CAMBIO: Ahora leemos directamente desde store.favorites
+  // Renombramos 'list' a 'favorito' para no alterar el resto de tu HTML/JSX
+  const { list: favorito, loading, error } = store.favorites;
 
   useEffect(() => {
-    if (id) {
-      actions.obtenerDetallePokemon(id);
+    // Asegúrate de enviar el id del usuario correcto (ej. store.user?.id)
+    if (store.user?.id) {
+      actions.cargarFavoritosBackend(store.user.id);
     }
-  }, [id]);
+  }, [store.user?.id]);
 
   return (
     <div className="container text-center mt-5 text-light mb-5">

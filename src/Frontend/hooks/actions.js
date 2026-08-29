@@ -137,21 +137,31 @@ export const getActions = (store, dispatch) => {
 
     // === ❤️ GESTIÓN DE FAVORITOS ===
     cargarFavoritosBackend: async (userId) => {
+      // 1. Activa el loading exclusivo de favoritos
+      dispatch({ type: "FAVORITES_LOADING" });
+
       try {
         const response = await fetch(
           `${BACKEND_URL}/api/favorites/user/${userId}/favorites`,
-          { headers: getAuthHeaders() }, // Añadida seguridad
+          { headers: getAuthHeaders() },
         );
         if (!response.ok)
           throw new Error("Error al obtener los favoritos del servidor");
+
         const data = await response.json();
 
+        // 2. Guarda la lista y apaga el loading de favoritos
         dispatch({
           type: "SET_FAVORITES",
           payload: data.results || data,
         });
       } catch (error) {
         console.error("Error cargando favoritos del backend:", error);
+        // 3. Registra el error exclusivo de favoritos
+        dispatch({
+          type: "FAVORITES_ERROR",
+          payload: error.message,
+        });
       }
     },
 
