@@ -167,46 +167,44 @@ export const getActions = (store, dispatch) => {
 
     añadirFavoritoBackend: async (userId, pokemon) => {
       try {
+        const idSeguro = encodeURIComponent(String(pokemon.id).trim());
+
         const response = await fetch(
-          `${BACKEND_URL}/api/favorites/user/${userId}/favorites/${pokemon.id}`,
+          `${BACKEND_URL}/api/favorites/user/${userId}/favorites/${idSeguro}`,
           {
             method: "POST",
-            headers: getAuthHeaders(),
+            headers: {
+              ...getAuthHeaders(),
+              "Content-Type": "application/json", // 🌟 Le avisamos al back que va información
+            },
+            body: JSON.stringify(pokemon), // 🌟 ¡Aquí pasamos la info del store al back!
           },
         );
 
         if (response.status === 409) {
-          // Avisamos a la UI que ya existe usando SET_MESSAGE global
           dispatch({
             type: "SET_MESSAGE",
-            payload: {
-              msg: "⚠️ Esta carta ya está en tus favoritos",
-              status: 409,
-            },
+            payload: { msg: "⚠️ Ya está en favoritos", status: 409 },
           });
           return;
         }
 
-        if (!response.ok)
-          throw new Error("No se pudo añadir el favorito en el servidor");
+        if (!response.ok) throw new Error("No se pudo añadir el favorito");
 
-        // Todo bien: agregamos al estado local (dentro de favorites.list)
+        // Todo bien: Actualizamos el Navbar e interfaz en tiempo real
         dispatch({ type: "ADD_FAVORITE_STORE", payload: pokemon });
-
-        dispatch({
-          type: "SET_MESSAGE",
-          payload: { msg: "❤️ ¡Carta añadida a favoritos!", status: 200 },
-        });
       } catch (error) {
-        console.error("Error al guardar favorito:", error);
-        dispatch({ type: "FAVORITES_ERROR", payload: error.message });
+        console.error(error);
       }
     },
 
     eliminarFavoritoBackend: async (userId, pokemonId) => {
       try {
+        // 🔥 CORRECCIÓN: Codificamos el ID para que coincida perfectamente con el POST
+        const idSeguro = encodeURIComponent(String(pokemonId).trim());
+
         const response = await fetch(
-          `${BACKEND_URL}/api/favorites/user/${userId}/favorites/${pokemonId}`,
+          `${BACKEND_URL}/api/favorites/user/${userId}/favorites/${idSeguro}`,
           {
             method: "DELETE",
             headers: getAuthHeaders(),

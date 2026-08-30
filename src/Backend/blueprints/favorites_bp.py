@@ -33,34 +33,54 @@ def get_user_favorite_pokemons(user_id):
 # 2. AÑADIR UN POKÉMON A FAVORITOS DE UN USUARIO (POST)
 
 
-@favorites_bp.route('/user/<int:user_id>/favorites/<string:pokemon_id>', methods=['POST'])
+@favorites_bp.route('/user/<int:user_id>/favorites/<string:pokemon_id>/', methods=['POST'])
 def add_favorite_pokemon(user_id, pokemon_id):
-    user = db.session.get(User, user_id)
-    pokemon = db.session.get(Pokemon, pokemon_id)
+    # 🌟 Capturamos la información que el Frontend nos acaba de mandar del store
+    data = request.get_json(silent=True) or {}
 
+    user = db.session.get(User, user_id)
     if not user:
         raise APIException(
             f"El usuario con ID {user_id} no existe", status_code=404)
-    if not pokemon:
-        raise APIException(
-            f"El Pokémon con ID {pokemon_id} no existe", status_code=404)
 
+    # Buscamos si este Pokémon ya se había guardado antes en la base de datos
+    pokemon = db.session.get(Pokemon, pokemon_id)
+
+    # 🌟 Si la base de datos no lo conoce, usa la info del store que le pasaste para crearlo
+    if not pokemon:
+        try:
+            pokemon = Pokemon(
+                id=pokemon_id,
+                pokemon_name=data.get("pokemon_name", f"Pokémon {pokemon_id}"),
+                # 🌟 ¡Ahora sí guardamos la imagen en la DB!
+                image=data.get("image", None)
+            )
+            db.session.add(pokemon)
+            db.session.commit()
+        except Exception as e:
+            db.session.rollback()
+            raise APIException(
+                f"Error al registrar la carta con imagen: {str(e)}", status_code=500)
+
+    # Validamos si ya es favorito de este usuario específico
     if pokemon in user.pokemon_favorites:
         raise APIException(
-            f"El Pokémon '{pokemon.pokemon_name}' ya se encuentra en los favoritos de este usuario", status_code=409)
+            f"Esta carta ya está en tus favoritos", status_code=409)
 
     try:
+        # Enlazamos los dos parámetros de forma relacional segura
         user.pokemon_favorites.append(pokemon)
         db.session.commit()
 
         return jsonify({
-            "message": f"Pokémon '{pokemon.pokemon_name}' añadido con éxito a los favoritos del usuario {user_id}"
+            "message": "¡Favorito guardado con éxito!",
+            "pokemon": pokemon.serialize()  # Retorna el objeto limpio
         }), 201
 
     except Exception as e:
-        db.session.rollback()  # Cancelamos cualquier operación fallida en la base de datos
+        db.session.rollback()
         raise APIException(
-            f"Error interno del servidor al añadir el favorito: {str(e)}", status_code=500)
+            f"Error interno al guardar el favorito: {str(e)}", status_code=500)
 
 # 3. ELIMINAR UN POKÉMON DE FAVORITOS DE UN USUARIO (DELETE)
 

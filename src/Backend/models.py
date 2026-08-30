@@ -50,6 +50,8 @@ class Pokemon(db.Model):
 
     id: Mapped[str] = mapped_column(String(50), primary_key=True)
     pokemon_name: Mapped[str] = mapped_column(String(50), nullable=False)
+    image: Mapped[str | None] = mapped_column(String(300), nullable=True)
+
     # CORRECCIÓN: Se usa list["User"] porque un pokémon puede ser favorito de muchos usuarios
     users: Mapped[list["User"]] = relationship(
         secondary=user_pokemon_association, back_populates="pokemon_favorites"
@@ -60,4 +62,5 @@ class Pokemon(db.Model):
         return {
             "id": self.id,
             "pokemon_name": self.pokemon_name,
+            "image": self.image,  # 🌟 La incluimos en la respuesta JSON
         }
