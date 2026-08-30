@@ -8,7 +8,7 @@ from Backend.utils import APIException
 pokemon_bp = Blueprint('Pokemon', __name__)
 
 
-@pokemon_bp.route('/pokemon/<int:pokemon_id>', methods=['GET'])
+@pokemon_bp.route('/pokemon/<string:pokemon_id>', methods=['GET'])
 def get_pokemon_by_id(pokemon_id):
     pokemon = db.session.get(Pokemon, pokemon_id)
 
@@ -28,24 +28,61 @@ def create_pokemon():
 
     if body is None:
         raise APIException(
-            "Debes incluir el cuerpo (body) en formato JSON", status_code=400)
+            "Debes incluir el cuerpo (body) en formato JSON",
+            status_code=400
+        )
+
+    # === CAMBIO: recibimos el ID string de TCGdex, por ejemplo A3b-001 ===
+    pokemon_id = body.get('id')
+
+    if (
+        not pokemon_id
+        or not isinstance(pokemon_id, str)
+        or pokemon_id.strip() == ""
+    ):
+        raise APIException(
+            "El campo 'id' es obligatorio y debe ser un texto válido",
+            status_code=400
+        )
+
+    # === CAMBIO: limpiamos el ID antes de guardarlo ===
+    id_clean = pokemon_id.strip()
 
     pokemon_name = body.get('pokemon_name')
-    if not pokemon_name or not isinstance(pokemon_name, str) or pokemon_name.strip() == "":
+    if (
+        not pokemon_name
+        or not isinstance(pokemon_name, str)
+        or pokemon_name.strip() == ""
+    ):
         raise APIException(
-            "El campo 'pokemon_name' es obligatorio y debe ser un texto válido", status_code=400)
+            "El campo 'pokemon_name' es obligatorio y debe ser un texto válido",
+            status_code=400
+        )
 
     name_clean = pokemon_name.strip()
+
+    # === CAMBIO: comprobamos que no exista ya ese ID ===
+    if db.session.get(Pokemon, id_clean):
+        raise APIException(
+            f"El Pokémon con ID '{id_clean}' ya existe en la base de datos",
+            status_code=409
+        )
 
     stmt = select(Pokemon).where(Pokemon.pokemon_name == name_clean)
     exist_pokemon = db.session.execute(stmt).scalar_one_or_none()
 
     if exist_pokemon is not None:
         raise APIException(
-            f"El Pokémon '{name_clean}' ya existe en la base de datos", status_code=409)
+            f"El Pokémon '{name_clean}' ya existe en la base de datos",
+            status_code=409
+        )
 
     try:
-        new_pokemon = Pokemon(pokemon_name=name_clean)
+        # === CAMBIO: guardamos explícitamente el ID string de TCGdex ===
+        new_pokemon = Pokemon(
+            id=id_clean,
+            pokemon_name=name_clean
+        )
 
         db.session.add(new_pokemon)
         db.session.commit()
@@ -61,7 +98,7 @@ def create_pokemon():
             f"Error interno del servidor al crear el Pokémon: {str(e)}", status_code=500)
 
 
-@pokemon_bp.route('/pokemon/<int:pokemon_id>', methods=['DELETE'])
+@pokemon_bp.route('/pokemon/<string:pokemon_id>', methods=['DELETE'])
 def delete_pokemon(pokemon_id):
     pokemon = db.session.get(Pokemon, pokemon_id)
 
@@ -87,7 +124,7 @@ def delete_pokemon(pokemon_id):
             f"Error interno al eliminar el Pokémon: {str(e)}", status_code=500)
 
 
-@pokemon_bp.route('/pokemon/<int:pokemon_id>', methods=['PUT'])
+@pokemon_bp.route('/pokemon/<string:pokemon_id>', methods=['PUT'])
 def update_pokemon(pokemon_id):
     body = request.get_json()
 

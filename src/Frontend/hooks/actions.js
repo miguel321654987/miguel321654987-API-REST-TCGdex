@@ -167,6 +167,22 @@ export const getActions = (store, dispatch) => {
 
     añadirFavoritoBackend: async (userId, pokemon) => {
       try {
+        // === CAMBIO: primero registramos la carta TCGdex en la base de datos ===
+        const pokemonResponse = await fetch(`${BACKEND_URL}/api/pok/pokemon`, {
+          method: "POST",
+          headers: getAuthHeaders(),
+          body: JSON.stringify({
+            id: pokemon.id,
+            pokemon_name: pokemon.pokemon_name,
+          }),
+        });
+
+        // Un 409 significa que la carta ya existe y se puede asociar igualmente.
+        if (!pokemonResponse.ok && pokemonResponse.status !== 409) {
+          throw new Error("No se pudo guardar la carta en el servidor");
+        }
+
+        // === CAMBIO: después asociamos la carta existente al usuario ===
         const response = await fetch(
           `${BACKEND_URL}/api/favorites/user/${userId}/favorites/${pokemon.id}`,
           {
