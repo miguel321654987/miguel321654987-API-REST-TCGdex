@@ -5,12 +5,9 @@ import useGlobalReducer from "../hooks/useGlobalReducer.jsx";
 export const Favoritos = () => {
   const { store, actions } = useGlobalReducer();
 
-  // CAMBIO: Ahora leemos directamente desde store.favorites
-  // Renombramos 'list' a 'favorito' para no alterar el resto de tu HTML/JSX
   const { list: favorito, loading, error } = store.favorites;
 
   useEffect(() => {
-    // Asegúrate de enviar el id del usuario correcto (ej. store.user?.id)
     if (store.user?.id) {
       actions.cargarFavoritosBackend(store.user.id);
     }
@@ -59,7 +56,7 @@ export const Favoritos = () => {
                         alt={pokemon.pokemon_name}
                         className="img-fluid"
                         style={{ maxHeight: "180px", objectFit: "contain" }}
-                        // Si por algún motivo la carta ya no existe en el CDN, muestra un placeholder
+                        // Si la carta ya no existe en el CDN, muestra un placeholder
                         onError={(e) => {
                           e.target.src = "https://placehold.co";
                         }}
@@ -74,8 +71,6 @@ export const Favoritos = () => {
                         </span>
                         {pokemon.pokemon_name}
                       </h5>
-
-                      {/* Botón dinámico que redirige usando el ID de texto */}
                       <Link
                         to={`/pokemon/${pokemon.id}`}
                         className="btn btn-outline-warning btn-sm w-100"
