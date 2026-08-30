@@ -1,10 +1,9 @@
 from flask import Blueprint, request, jsonify
-import requests
 from Backend.models import db, Pokemon
 from sqlalchemy import select
 from Backend.utils import APIException
 
-# 1. Definimos el Blueprint (El componente modular)
+# 1. Definimos el Blueprint
 pokemon_bp = Blueprint('Pokemon', __name__)
 
 
@@ -32,7 +31,7 @@ def create_pokemon():
             status_code=400
         )
 
-    # === CAMBIO: recibimos el ID string de TCGdex, por ejemplo A3b-001 ===
+    # === CAMBIO: recibimos el ID string de TCGdex ===
     pokemon_id = body.get('id')
 
     if (
