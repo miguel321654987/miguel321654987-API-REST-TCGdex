@@ -6,6 +6,7 @@ import { toast } from "react-toastify";
 export const Navbar = () => {
   const { store, actions } = useGlobalReducer();
   const navigate = useNavigate();
+  const { list: favorito } = store.favorites;
 
   const clickLogout = () => {
     actions.handleLogout();
@@ -28,30 +29,60 @@ export const Navbar = () => {
               data-bs-toggle="dropdown"
               aria-expanded="false"
             >
-              Favoritos ({store.favorites ? store.favorites.length : 0})
+              Favoritos ({favorito ? favorito.length : 0})
             </button>
             <ul
               className="dropdown-menu dropdown-menu-end"
               style={{ minWidth: "200px" }}
             >
-              {store.favorites && store.favorites.length > 0 ? (
-                store.favorites.map((fav) => (
-                  <li key={fav.id}>
+              {favorito && favorito.length > 0 ? (
+                <>
+                  {favorito.map((fav) => (
+                    <li key={fav.id}>
+                      <Link
+                        to={`/pokemon/${fav.id}`}
+                        className="dropdown-item d-flex align-items-center justify-content-between"
+                      >
+                        <span>{fav.pokemon_name}</span>
+                        <i className="bi bi-heart-fill text-danger small"></i>
+                      </Link>
+                    </li>
+                  ))}
+
+                  <li>
+                    <hr className="dropdown-divider" />
+                  </li>
+
+                  <li>
                     <Link
-                      to={`/pokemon/${fav.id}`}
-                      className="dropdown-item d-flex align-items-center justify-content-between"
+                      to="/favoritos"
+                      className="dropdown-item text-warning fw-semibold"
                     >
-                      <span>{fav.pokemon_name}</span>
-                      <i className="bi bi-heart-fill text-danger small"></i>
+                      Ver todos mis favoritos
                     </Link>
                   </li>
-                ))
+                </>
               ) : (
-                <li>
-                  <span className="dropdown-item text-muted small">
-                    No hay favoritos
-                  </span>
-                </li>
+                <>
+                  <li>
+                    <span className="dropdown-item text-muted small">
+                      No hay favoritos
+                    </span>
+                  </li>
+
+                  <li>
+                    <hr className="dropdown-divider" />
+                  </li>
+
+                  <li>
+                    <Link
+                      to="/favoritos"
+                      className="dropdown-item text-warning fw-semibold"
+                    >
+                      Ver favoritos
+                    </Link>
+                  </li>
+                </>
               )}
             </ul>
           </div>
