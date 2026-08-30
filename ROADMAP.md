@@ -120,6 +120,18 @@ Next steps suggested:
 - **Status:** Completed locally. No remote deployment has been made.
 - **Suggested Next Steps:** Proceed to the next feature or cleaning task following a strict MVC/Blueprint structure (4Geeks Academy).
 
+### 📌 [2026-08-30] - Fix for favorite IDs in backend
+
+- **Inserted on:** 2026-08-30 while working on the current branch in the local workspace.
+- **Changes Made:**
+  - Corrected the favorites data model so the `Pokemon` identifier is stored as a string while the `User` identifier remains an integer, matching the real backend relationship in `src/Backend/models.py`.
+  - Confirmed that the association table uses `pokemon_id` as `db.String(50)` with a foreign key to `pokemons.id`, while `user_id` remains an integer foreign key to `users.id`.
+  - Verified that the favorite endpoints in `src/Backend/blueprints/favorites_bp.py` use `<string:pokemon_id>` and resolve records via `db.session.get(Pokemon, pokemon_id)`, avoiding invalid casts or ID mismatches when saving favorites.
+  - Updated the frontend flow in `src/Frontend/hooks/actions.js` to first ensure the Pokémon record exists in the backend and then associate it with the user, preventing persistence errors caused by sending a non-matching or numeric-looking ID.
+  - Kept the duplicate check aligned with the backend behavior so repeated favorites return a `409` before the relation is created again.
+- **Result / Status:** The ID bug affecting favorite persistence is fixed locally. The backend now preserves the correct data type consistency between `User`, `Pokemon`, and the `user_pokemon_association` table.
+- **Next steps suggested:** Validate the full favorites flow with a real session, confirm duplicate handling stays consistent, and check whether there are any residual frontend edge cases around logout and modal cleanup.
+
 # <!--
 
 # TRADUCCIÓN AL ESPAÑOL (SOLO PARA REFERENCIA HUMANA)
@@ -225,4 +237,15 @@ Desarrollar una aplicación de pruebas full-stack (Flask + React) que consuma da
   - Actualización del archivo `config.yaml`:\*\* Inclusión de detalles de los modelos Qwen 2.5 Coder 7B (Chat), Gemma 4 E4B (Plan / Edit / Agent), DeepSeek R1 7B Spec (Analizador de Bugs) y Qwen 1.5b Autocomplete Model.
 - **Estado:** Completado localmente. No se ha realizado despliegue remoto.
 - **Próximos pasos sugeridos:** Proceder al siguiente feature o tarea de limpieza siguiendo una estructura estricta MVC/Blueprint (4Geeks Academy).
-  -->
+
+### 📌 [2026-08-30] - Corrección de IDs de favoritos en el backend
+
+- **Insertado el:** 2026-08-30 mientras se trabajaba en la rama actual del proyecto.
+- **Cambios realizados:**
+  - Corregí el modelo de favoritos para que el identificador de `Pokemon` se almacene como cadena mientras que el de `User` sigue siendo numérico, ajustándolo al modelo real de relación del backend en `src/Backend/models.py`.
+  - Confirmé que la tabla de asociación usa `pokemon_id` como `db.String(50)` con clave foránea a `pokemons.id`, mientras `user_id` sigue siendo una clave foránea entera a `users.id`.
+  - Verifiqué que los endpoints de favoritos en `src/Backend/blueprints/favorites_bp.py` usan `<string:pokemon_id>` y resuelven los registros con `db.session.get(Pokemon, pokemon_id)`, evitando conversiones o discrepancias de tipo al guardar favoritos.
+  - Ajusté el flujo del frontend en `src/Frontend/hooks/actions.js` para crear primero la carta en el backend y luego asociarla al usuario, evitando errores de persistencia provocados por un ID incompatible o con formato numérico.
+  - Mantengo la validación de duplicados alineada con la lógica del backend para que un favorito repetido devuelva `409` antes de crear la relación.
+- **Resultado / Estado:** El problema de IDs que impedía guardar favoritos queda corregido localmente. El backend mantiene la consistencia de tipos correcta entre `User`, `Pokemon` y la tabla `user_pokemon_association`.
+- **Próximos pasos sugeridos:** Validar el flujo completo de favoritos con una sesión real, confirmar que la gestión de duplicados sigue siendo consistente y revisar si quedan casos residuales en el frontend relacionados con logout y limpieza de modales. -->
