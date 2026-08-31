@@ -11,11 +11,11 @@ export const Home = () => {
   const { list: pokemons, loading, error } = store.api;
   const { list: favorito } = store.favorites;
 
-  // === ❤️ CAMBIO: reutilizamos la lista de favoritos del store ===
+  // Reutilizamos la lista de favoritos del store ===
   const esFavorito = (pokemonId) =>
     favorito.some((card) => String(card.id) === String(pokemonId));
 
-  // === ❤️ CAMBIO: usamos las acciones ya creadas en actions.js ===
+  // Usamos las acciones ya creadas en actions.js ===
   const handleToggleFavorite = async (pokemon) => {
     if (!store.token || !store.user?.id) {
       openModalSafely("loginModal");
@@ -73,7 +73,7 @@ export const Home = () => {
               return (
                 <div key={pokemon.id} className="col-6 col-md-4 col-lg-3">
                   <div className="card bg-dark text-light border-secondary h-100 shadow-sm position-relative">
-                    {/* === ❤️ CAMBIO: botón con aspecto de corazón para añadir o borrar === */}
+                    {/* botón con aspecto de corazón para añadir o borrar === */}
                     <button
                       type="button"
                       className={`btn btn-sm position-absolute top-0 end-0 m-2 rounded-circle ${

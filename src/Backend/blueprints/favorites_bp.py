@@ -52,7 +52,6 @@ def add_favorite_pokemon(user_id, pokemon_id):
             pokemon = Pokemon(
                 id=pokemon_id,
                 pokemon_name=data.get("pokemon_name", f"Pokémon {pokemon_id}"),
-                # 🌟 ¡Ahora sí guardamos la imagen en la DB!
                 image=data.get("image", None)
             )
             db.session.add(pokemon)

@@ -28,7 +28,7 @@ class User(db.Model):
     last_name: Mapped[str] = mapped_column(String(80), nullable=False)
     is_active: Mapped[bool] = mapped_column(
         Boolean(), nullable=False, default=True)
-    # CORRECCIÓN: Se usa list["Pokemon"] porque un usuario tiene muchos pokémons
+    # Se usa list["Pokemon"] porque un usuario tiene muchos pokémons
     pokemon_favorites: Mapped[list["Pokemon"]] = relationship(
         secondary=user_pokemon_association, back_populates="users"
     )
@@ -51,8 +51,7 @@ class Pokemon(db.Model):
     id: Mapped[str] = mapped_column(String(50), primary_key=True)
     pokemon_name: Mapped[str] = mapped_column(String(50), nullable=False)
     image: Mapped[str | None] = mapped_column(String(300), nullable=True)
-
-    # CORRECCIÓN: Se usa list["User"] porque un pokémon puede ser favorito de muchos usuarios
+    # Se usa list["User"] porque un pokémon puede ser favorito de muchos usuarios
     users: Mapped[list["User"]] = relationship(
         secondary=user_pokemon_association, back_populates="pokemon_favorites"
     )
