@@ -95,8 +95,7 @@ export const Signup = ({ signupModal }) => {
 
         // 🌟 CIERRE DEFENSIVO DEL MODAL
         // En entorno local, Bootstrap a veces tarda en inicializarse completamente.
-        // El helper closeModalSafely intenta cerrar con Bootstrap primero, y si falla,
-        // lo hace manualmente con CSS para que el modal se cierre sin dejar backdrop abierto.
+        // El helper intenta cerrar con Bootstrap. Si falla, lo hace manualmente con CSS
         setTimeout(() => {
           closeModalSafely(signupModal);
           dispatch({ type: "SET_MESSAGE", payload: null });
