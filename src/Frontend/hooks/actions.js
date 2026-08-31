@@ -137,6 +137,9 @@ export const getActions = (store, dispatch) => {
 
     // === ❤️ GESTIÓN DE FAVORITOS ===
     cargarFavoritosBackend: async (userId) => {
+      // antes de pedir la lista del nuevo usuario, limpiamos el estado local
+      dispatch({ type: "CLEAR_FAVORITES" });
+
       // 1. Activa el loading exclusivo de favoritos
       dispatch({ type: "FAVORITES_LOADING" });
 
