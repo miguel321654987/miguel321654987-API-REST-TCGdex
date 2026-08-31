@@ -13,7 +13,7 @@ export const Home = () => {
 
   // === ❤️ CAMBIO: reutilizamos la lista de favoritos del store ===
   const esFavorito = (pokemonId) =>
-    favorito.some((card) => Number(card.id) === Number(pokemonId));
+    favorito.some((card) => String(card.id) === String(pokemonId));
 
   // === ❤️ CAMBIO: usamos las acciones ya creadas en actions.js ===
   const handleToggleFavorite = async (pokemon) => {
