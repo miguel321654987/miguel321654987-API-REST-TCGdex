@@ -46,6 +46,7 @@ export function StoreProvider({ children }) {
         });
 
         if (profile && profile.id) {
+          dispatch({ type: "CLEAR_FAVORITES" }); // Limpia favoritos antes de cargar los nuevos
           await actions.cargarFavoritosBackend(profile.id);
         }
       } catch (error) {

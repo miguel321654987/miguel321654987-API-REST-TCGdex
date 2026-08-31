@@ -37,6 +37,11 @@ export default function storeReducer(store, action = {}) {
         token: null,
         user: null,
         message: { msg: "👋 ¡Sesión cerrada con éxito!", status: 200 },
+        favorites: {
+          list: [], // también limpiamos al cerrar sesión
+          loading: false,
+          error: null,
+        },
       };
 
     case "SET_MESSAGE":
@@ -87,6 +92,15 @@ export default function storeReducer(store, action = {}) {
         },
       };
 
+    case "CLEAR_FAVORITES":
+      return {
+        ...store,
+        favorites: {
+          loading: false,
+          list: [], // vaciamos el caché local del usuario anterior
+          error: null,
+        },
+      };
     case "FAVORITES_LOADING":
       return {
         ...store,
