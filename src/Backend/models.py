@@ -4,7 +4,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 db = SQLAlchemy()
 
-# 1. Definición de la Tabla de Asociación (Many-to-Many)
+# Definición de la Tabla de Asociación (Many-to-Many)
 # Usamos db.Table para mantener la consistencia con Flask-SQLAlchemy
 user_pokemon_association = db.Table(
     "user_pokemon_favorite",
@@ -63,3 +63,6 @@ class Pokemon(db.Model):
             "pokemon_name": self.pokemon_name,
             "image": self.image,  # 🌟 La incluimos en la respuesta JSON
         }
+
+
++

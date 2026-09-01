@@ -7,7 +7,7 @@ from Backend.utils import APIException  # Importamos tu clase de excepciones
 # Creamos el Blueprint exclusivo para la gestión de favoritos
 favorites_bp = Blueprint('favorites', __name__)
 
-# 1. OBTENER TODOS LOS POKÉMON FAVORITOS DE UN USUARIO (GET)
+# OBTENER TODOS LOS POKÉMON FAVORITOS DE UN USUARIO (GET)
 
 
 @favorites_bp.route('/user/<int:user_id>/favorites', methods=['GET'])
@@ -30,7 +30,7 @@ def get_user_favorite_pokemons(user_id):
         "total_favorites": len(favorites_serialized)
     }), 200
 
-# 2. AÑADIR UN POKÉMON A FAVORITOS DE UN USUARIO (POST)
+# AÑADIR UN POKÉMON A FAVORITOS DE UN USUARIO (POST)
 
 
 @favorites_bp.route('/user/<int:user_id>/favorites/<string:pokemon_id>/', methods=['POST'])
@@ -81,7 +81,7 @@ def add_favorite_pokemon(user_id, pokemon_id):
         raise APIException(
             f"Error interno al guardar el favorito: {str(e)}", status_code=500)
 
-# 3. ELIMINAR UN POKÉMON DE FAVORITOS DE UN USUARIO (DELETE)
+# ELIMINAR UN POKÉMON DE FAVORITOS DE UN USUARIO (DELETE)
 
 
 @favorites_bp.route('/user/<int:user_id>/favorites/<string:pokemon_id>', methods=['DELETE'])
