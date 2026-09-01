@@ -11,11 +11,11 @@ export const Home = () => {
   const { list: pokemons, loading, error } = store.api;
   const { list: favorito } = store.favorites;
 
-  // Reutilizamos la lista de favoritos del store ===
+  // Reutilizamos la lista de favoritos del store
   const esFavorito = (pokemonId) =>
     favorito.some((card) => String(card.id) === String(pokemonId));
 
-  // Usamos las acciones ya creadas en actions.js ===
+  // Usamos las acciones ya creadas en actions.js
   const handleToggleFavorite = async (pokemon) => {
     if (!store.token || !store.user?.id) {
       openModalSafely("loginModal");

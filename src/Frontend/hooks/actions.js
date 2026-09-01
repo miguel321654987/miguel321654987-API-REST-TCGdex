@@ -135,7 +135,7 @@ export const getActions = (store, dispatch) => {
       dispatch({ type: "API_DETAIL_SUCCESS", payload: null });
     },
 
-    // === ❤️ GESTIÓN DE FAVORITOS ===
+    // === ❤️ GESTIÓN DE FAVORITOS
     cargarFavoritosBackend: async (userId) => {
       // antes de pedir la lista del nuevo usuario, limpiamos el estado local
       dispatch({ type: "CLEAR_FAVORITES" });

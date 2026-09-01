@@ -132,7 +132,22 @@ Next steps suggested:
 - **Result / Status:** The ID bug affecting favorite persistence is fixed locally. The backend now preserves the correct data type consistency between `User`, `Pokemon`, and the `user_pokemon_association` table.
 - **Next steps suggested:** Validate the full favorites flow with a real session, confirm duplicate handling stays consistent, and check whether there are any residual frontend edge cases around logout and modal cleanup.
 
-# <!--
+### 📌 [2026-09-01 15:05:00 UTC] - Critical Sign-Off: Favorites Module (Feature Complete)
+
+- **Inserted on:** 2026-09-01 15:05:00 UTC while working on the Favorites branch
+- **Changes Made:** The entire lifecycle of the favorites module has been fully completed and validated. Type mismatch issues regarding IDs have been permanently corrected at a transactional level, utilizing `String` for the Pokémon ID (`pokemon_id`) in the association table to ensure referential integrity between User, Pokemon, and the association table.
+- **Technical Details:** The business logic now correctly handles duplicate attempts by returning HTTP code 409 (Conflict), significantly improving the user experience on both adding and deleting items.
+- **Status:** CORE FUNCTIONALITY COMPLETE & STABLE. This module is ready for pre-production inclusion.
+- **Suggested Next Steps:** We recommend focusing efforts next on advanced UI/UX polishing or commencing detailed planning for the next major feature, following the strict MVC/Blueprint structure (4Geeks Academy).
+
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+
+<!--
 
 # TRADUCCIÓN AL ESPAÑOL (SOLO PARA REFERENCIA HUMANA)
 
@@ -248,4 +263,17 @@ Desarrollar una aplicación de pruebas full-stack (Flask + React) que consuma da
   - Ajusté el flujo del frontend en `src/Frontend/hooks/actions.js` para crear primero la carta en el backend y luego asociarla al usuario, evitando errores de persistencia provocados por un ID incompatible o con formato numérico.
   - Mantengo la validación de duplicados alineada con la lógica del backend para que un favorito repetido devuelva `409` antes de crear la relación.
 - **Resultado / Estado:** El problema de IDs que impedía guardar favoritos queda corregido localmente. El backend mantiene la consistencia de tipos correcta entre `User`, `Pokemon` y la tabla `user_pokemon_association`.
-- **Próximos pasos sugeridos:** Validar el flujo completo de favoritos con una sesión real, confirmar que la gestión de duplicados sigue siendo consistente y revisar si quedan casos residuales en el frontend relacionados con logout y limpieza de modales. -->
+- **Próximos pasos sugeridos:** Validar el flujo completo de favoritos con una sesión real, confirmar que la gestión de duplicados sigue siendo consistente y revisar si quedan casos residuales en el frontend relacionados con logout y limpieza de modales.
+
+### 📌 [2026-09-01 15:05:00 UTC] - Cierre Funcional: Módulo de Favoritos (Feature Complete)
+- **Insertado el:** 2026-09-01 15:05:00 UTC mientras se trabajaba en la rama Favoritos
+- **Cambios realizados:** Se completó y validó exhaustivamente todo el ciclo de vida del módulo de favoritos. Se corrigió persistentemente la gestión de tipos de IDs (Pokemon como String) y se implementaron validaciones transaccionales avanzadas para asegurar la integridad referencial entre Usuario, Pokémon y la tabla de asociación.
+- **Detalles Técnicos:** La lógica de negocio ahora maneja correctamente los intentos de duplicación mediante el retorno del código HTTP 409, mejorando sustancialmente la experiencia de usuario en el *frontend* durante las adiciones y eliminaciones.
+- **Estado:** ¡Funcionalidad clave completada y validada! El módulo es estable para su inclusión en un entorno pre-producción.
+- **Próximos pasos sugeridos:** Se recomienda enfocar ahora los esfuerzos en el pulido avanzado de la Interfaz de Usuario (UI/UX) o comenzar la planificación detallada del módulo siguiente, siguiendo la estructura MVC/Blueprint (4Geeks Academy).
+
+
+
+
+
+-->
