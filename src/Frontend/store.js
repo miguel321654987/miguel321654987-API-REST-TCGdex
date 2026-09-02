@@ -111,12 +111,12 @@ export default function storeReducer(store, action = {}) {
         },
       };
 
-    case "SET_FAVORITES":
+    case "SET_FAVORITES": // Cargar lista de favoritos desde el backend
       return {
         ...store,
         favorites: {
           loading: false,
-          list: action.payload, // Guarda el array traído de Flask
+          list: action.payload,
           error: null,
         },
       };

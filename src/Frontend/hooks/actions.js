@@ -203,7 +203,7 @@ export const getActions = (store, dispatch) => {
 
     eliminarFavoritoBackend: async (userId, pokemonId) => {
       try {
-        // 🔥 CORRECCIÓN: Codificamos el ID para que coincida perfectamente con el POST
+        // Codificamos el ID para que coincida perfectamente con el POST
         const idSeguro = encodeURIComponent(String(pokemonId).trim());
 
         const response = await fetch(

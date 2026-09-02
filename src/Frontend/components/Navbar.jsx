@@ -7,8 +7,8 @@ export const Navbar = () => {
   const { store, actions } = useGlobalReducer();
   const navigate = useNavigate();
 
-  // Garantizamos que 'favorito' siempre sea un array para evitar errores de .length
-  const favorito = store.favorites?.list || [];
+  // Garantizamos que 'favoritos' siempre sea un array para evitar errores de .length
+  const favoritos = store.favorites?.list || [];
 
   const clickLogout = () => {
     actions.handleLogout();
@@ -34,7 +34,7 @@ export const Navbar = () => {
               <span>Favoritos</span>
               {/* TOTAL DINÁMICO: Badge estilizado con Bootstrap 5 */}
               <span className="badge bg-dark text-info fw-bold">
-                {favorito.length}
+                {favoritos.length}
               </span>
             </button>
             <ul
@@ -45,9 +45,9 @@ export const Navbar = () => {
                 overflowY: "auto",
               }}
             >
-              {favorito.length > 0 ? (
+              {favoritos.length > 0 ? (
                 <>
-                  {favorito.map((fav) => (
+                  {favoritos.map((fav) => (
                     <li key={fav.id}>
                       <Link
                         to={`/pokemon/${fav.id}`}
