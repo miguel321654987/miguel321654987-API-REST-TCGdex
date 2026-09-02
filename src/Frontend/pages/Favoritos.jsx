@@ -33,8 +33,8 @@ export const Favoritos = () => {
       ) : (
         <div className="row g-4 justify-content-center mt-2">
           {favoritos.length === 0 ? (
-            <div className="mt-5 p-5 bg-dark rounded border border-secondary">
-              <p className="text-muted fs-5 mb-3">
+            <div className="mt-3 p-5 bg-dark rounded border border-secondary">
+              <p className="text-white fs-5 mb-4">
                 Aún no has guardado ninguna carta.
               </p>
               <Link to="/" className="btn btn-warning btn-sm">
