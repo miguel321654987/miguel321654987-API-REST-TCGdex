@@ -5,7 +5,7 @@ import useGlobalReducer from "../hooks/useGlobalReducer.jsx";
 export const Favoritos = () => {
   const { store, actions } = useGlobalReducer();
 
-  const { list: favorito, loading, error } = store.favorites;
+  const { list: favoritos, loading, error } = store.favorites;
 
   useEffect(() => {
     if (store.user?.id) {
@@ -32,7 +32,7 @@ export const Favoritos = () => {
         <p className="text-danger mt-4">Hubo un error: {error}</p>
       ) : (
         <div className="row g-4 justify-content-center mt-2">
-          {favorito.length === 0 ? (
+          {favoritos.length === 0 ? (
             <div className="mt-5 p-5 bg-dark rounded border border-secondary">
               <p className="text-muted fs-5 mb-3">
                 Aún no has guardado ninguna carta.
@@ -42,7 +42,7 @@ export const Favoritos = () => {
               </Link>
             </div>
           ) : (
-            favorito.map((pokemon) => {
+            favoritos.map((pokemon) => {
               return (
                 <div key={pokemon.id} className="col-6 col-md-4 col-lg-3">
                   <div className="card bg-dark text-light border-warning h-100 shadow-sm">

@@ -63,6 +63,3 @@ class Pokemon(db.Model):
             "pokemon_name": self.pokemon_name,
             "image": self.image,  # 🌟 La incluimos en la respuesta JSON
         }
-
-
-+

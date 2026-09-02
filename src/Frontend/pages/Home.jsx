@@ -9,11 +9,11 @@ export const Home = () => {
 
   // Extraemos las variables directamente desde store global
   const { list: pokemons, loading, error } = store.api;
-  const { list: favorito } = store.favorites;
+  const { list: favoritos } = store.favorites;
 
   // Reutilizamos la lista de favoritos del store
   const esFavorito = (pokemonId) =>
-    favorito.some((card) => String(card.id) === String(pokemonId));
+    favoritos.some((card) => String(card.id) === String(pokemonId));
 
   // Usamos las acciones ya creadas en actions.js
   const handleToggleFavorite = async (pokemon) => {

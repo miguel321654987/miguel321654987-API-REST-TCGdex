@@ -1,7 +1,7 @@
 import { useReducer, useEffect } from "react";
 import storeReducer, { initialStore } from "../store";
 import { getActions } from "./actions.js";
-import { StoreContext } from "../hooks/useGlobalReducer.jsx";
+import { StoreContext } from "./useGlobalReducer.jsx";
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:3000";
 
@@ -66,4 +66,4 @@ export function StoreProvider({ children }) {
 
 /* Al usar .Provider se activa el StoreContext y permite que los componentes hijos
  accedan al estado global y al dispatch.
- value={{ store, dispatch }}> los vuelve disponibles para useGlobalReducer */
+ value={{ state: store, dispatch }}> los vuelve disponibles para useGlobalReducer */
