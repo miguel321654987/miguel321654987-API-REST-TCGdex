@@ -23,13 +23,10 @@ export const getActions = (store, dispatch) => {
   return {
     handleLogout: (modalId = null) => {
       // 1. Si hay un ID, cerramos ese modal específico de forma segura.
-      // Si no hay ID, pero puede haber backdrops huérfanos por desmontajes abruptos,
-      // ejecutar la limpieza pasando un ID genérico o adaptando tu función.
       if (modalId) {
         closeModalSafely(modalId);
       } else {
         // Si no hay un modal concreto, limpiamos los residuos del body de forma segura
-        // (Puedes extraer esta limpieza a una pequeña función reutilizable si lo deseas)
         const backdrops = document.querySelectorAll(".modal-backdrop");
         backdrops.forEach((backdrop) => backdrop.remove());
         document.body.classList.remove("modal-open");
