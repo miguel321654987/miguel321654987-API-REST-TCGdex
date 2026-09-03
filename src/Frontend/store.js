@@ -101,15 +101,6 @@ export default function storeReducer(store, action = {}) {
           error: null,
         },
       };
-    case "FAVORITES_LOADING":
-      return {
-        ...store,
-        favorites: {
-          ...store.favorites,
-          loading: true,
-          error: null,
-        },
-      };
 
     case "SET_FAVORITES": // Cargar lista de favoritos desde el backend
       return {
@@ -117,6 +108,16 @@ export default function storeReducer(store, action = {}) {
         favorites: {
           loading: false,
           list: action.payload,
+          error: null,
+        },
+      };
+
+    case "FAVORITES_LOADING":
+      return {
+        ...store,
+        favorites: {
+          ...store.favorites,
+          loading: true,
           error: null,
         },
       };

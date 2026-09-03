@@ -73,7 +73,7 @@ export const Home = () => {
               return (
                 <div key={pokemon.id} className="col-6 col-md-4 col-lg-3">
                   <div className="card bg-dark text-light border-secondary h-100 shadow-sm position-relative">
-                    {/* botón con aspecto de corazón para añadir o borrar === */}
+                    {/* Botón con aspecto de corazón para añadir o borrar favoritos */}
                     <button
                       type="button"
                       className={`btn btn-sm position-absolute top-0 end-0 m-2 rounded-circle ${
@@ -90,12 +90,13 @@ export const Home = () => {
                         zIndex: 2,
                       }}
                       onClick={() => handleToggleFavorite(pokemon)}
-                      title={
+                      aria-label={
                         favoritoActual
                           ? "Quitar de favoritos"
                           : "Añadir a favoritos"
                       }
-                      aria-label={
+                      // tooltip opcional para accesibilidad y UX
+                      title={
                         favoritoActual
                           ? "Quitar de favoritos"
                           : "Añadir a favoritos"
@@ -108,7 +109,6 @@ export const Home = () => {
                         style={{ fontSize: "1.1rem" }}
                       ></i>
                     </button>
-
                     <div
                       className="p-3 bg-secondary bg-opacity-20 d-flex justify-content-center align-items-center"
                       style={{ minHeight: "220px" }}
@@ -124,7 +124,6 @@ export const Home = () => {
                         }}
                       />
                     </div>
-
                     <div className="card-body d-flex flex-column justify-content-between">
                       <h5 className="card-title text-capitalize fs-6 mb-3 text-start">
                         <span className="text-secondary fs-6 small block d-block mb-1">
