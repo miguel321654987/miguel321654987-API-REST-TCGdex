@@ -7,9 +7,16 @@ export const getActions = (store, dispatch) => {
   // 🔥 Helper interno para incluir el Token JWT de forma automática y segura
   const getAuthHeaders = () => {
     const token = localStorage.getItem("jwt-token");
+    // Si no hay token, devolvemos solo el Content-Type básico
+    if (!token) {
+      return {
+        "Content-Type": "application/json",
+      };
+    }
+    // Si el token existe, devolvemos el objeto completo con la autorización
     return {
       "Content-Type": "application/json",
-      ...(token && { Authorization: `Bearer ${token}` }), // Envía Bearer token si existe
+      Authorization: `Bearer ${token}`,
     };
   };
 
@@ -176,10 +183,7 @@ export const getActions = (store, dispatch) => {
           `${BACKEND_URL}/api/favorites/user/${userId}/favorites/${idSeguro}`,
           {
             method: "POST",
-            headers: {
-              ...getAuthHeaders(),
-              "Content-Type": "application/json", // 🌟 Le avisamos al back que va información
-            },
+            headers: { ...getAuthHeaders() }, // ✨ Escalabilidad: podrían agregarse otros headers
             body: JSON.stringify(pokemon), // 🌟 ¡Aquí pasamos la info del store al back!
           },
         );
@@ -210,7 +214,7 @@ export const getActions = (store, dispatch) => {
           `${BACKEND_URL}/api/favorites/user/${userId}/favorites/${idSeguro}`,
           {
             method: "DELETE",
-            headers: getAuthHeaders(),
+            headers: { ...getAuthHeaders() },
           },
         );
         if (!response.ok)
