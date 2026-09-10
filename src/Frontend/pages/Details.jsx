@@ -52,7 +52,7 @@ export const PokemonDetail = () => {
 
           {/* Columna Derecha: Atributos y Estadísticas */}
           <div className="col-12 col-md-7">
-            <div className="p-4 bg-dark border border-secondary rounded-3 shadow-sm">
+            <div className="p-4 bg-secondary bg-opacity-10 border border-secondary rounded-3 shadow-sm">
               <span className="badge bg-warning text-dark mb-2 fs-6">
                 ID: {card.id}
               </span>

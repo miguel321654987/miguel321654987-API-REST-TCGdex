@@ -36,18 +36,7 @@ export const Home = () => {
 
   return (
     <div className="container text-center mt-5 text-light">
-      <h1
-        className="fw-bold mb-4 animate-pulse"
-        style={{
-          fontSize: "calc(1.4rem + 1.8vw)",
-          background: "linear-gradient(45deg, #46cef0, #ffda07, #ff8522de)",
-          WebkitBackgroundClip: "text",
-          WebkitTextFillColor: "transparent",
-          filter: "drop-shadow(0px 4px 12px rgba(255, 193, 7, 0.5))",
-          letterSpacing: "1px",
-          fontFamily: "'Arial Black', Impact, sans-serif",
-        }}
-      >
+      <h1 className="home-title fw-bold mb-4 animate-pulse">
         ¡Bienvenido a la PokeApp TCG!
       </h1>
 
