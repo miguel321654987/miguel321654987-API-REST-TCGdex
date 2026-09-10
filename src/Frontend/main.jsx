@@ -1,6 +1,6 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
-import "../../styles.css"; // Global styles for your application
+import "./Index.css"; // Global styles for your application
 
 // 🌟 ¡AÑADE ESTAS DOS LÍNEAS AQUÍ PARA CARGAR BOOTSTRAP!
 import "bootstrap/dist/css/bootstrap.min.css";

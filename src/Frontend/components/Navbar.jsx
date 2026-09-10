@@ -1,4 +1,4 @@
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import useGlobalReducer from "../hooks/useGlobalReducer.jsx";
 import { openModalSafely } from "../utils.js";
 import { toast } from "react-toastify";
@@ -6,6 +6,16 @@ import { toast } from "react-toastify";
 export const Navbar = () => {
   const { store, actions } = useGlobalReducer();
   const navigate = useNavigate();
+
+  // Busqueda por nombre: Obtenemos el valor del parámetro 'search' de la URL
+  const [searchParams] = useSearchParams();
+  const searchTerm = searchParams.get("search") || "";
+
+  const handleSearch = (event) => {
+    const value = event.target.value;
+
+    navigate(value ? `/?search=${encodeURIComponent(value)}` : "/");
+  };
 
   // Garantizamos que 'favoritos' siempre sea un array para evitar errores de .length
   const favoritos = store.favorites?.list || [];
@@ -23,6 +33,15 @@ export const Navbar = () => {
           🚀 PokemonWorld
         </Link>
         <div className="d-flex align-items-center gap-2">
+          <input
+            type="search"
+            className="form-control form-control-sm"
+            placeholder="Buscar por nombre"
+            value={searchTerm}
+            onChange={handleSearch}
+            aria-label="Buscar por nombre"
+          />
+
           {/* Menú Dropdown de Favoritos */}
           <div className="btn-group">
             <button
