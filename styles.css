@@ -8,3 +8,18 @@
   letter-spacing: 1px;
   font-family: "Arial Black", Impact, sans-serif;
 }
+
+.dropdown-Favoritos {
+  min-width: 220px;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.favorite-button {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+}

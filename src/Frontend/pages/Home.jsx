@@ -70,14 +70,6 @@ export const Home = () => {
                           ? "btn-danger"
                           : "btn-outline-light bg-dark bg-opacity-75"
                       }`}
-                      style={{
-                        width: "40px",
-                        height: "40px",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        zIndex: 2,
-                      }}
                       onClick={() => handleToggleFavorite(pokemon)}
                       aria-label={
                         favoritoActual

@@ -37,14 +37,7 @@ export const Navbar = () => {
                 {favoritos.length}
               </span>
             </button>
-            <ul
-              className="dropdown-menu dropdown-menu-end"
-              style={{
-                minWidth: "220px",
-                maxHeight: "300px",
-                overflowY: "auto",
-              }}
-            >
+            <ul className="dropdown-Favoritos dropdown-menu dropdown-menu-end">
               {favoritos.length > 0 ? (
                 <>
                   {favoritos.map((fav) => (
