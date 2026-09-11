@@ -13,24 +13,26 @@ export const Home = () => {
 
   // Nuevo: obtenemos desde la URL el nombre escrito en el Navbar
   const [searchParams] = useSearchParams();
-  const searchTerm = searchParams.get("search") || "";
+  // Lee lo que el Navbar escribió en la URL
+  const searchName = searchParams.get("search") || "";
 
   // Nuevo: normalizamos el texto para ignorar mayúsculas y acentos
-  const normalize = (value) =>
+  const normalizedName = (value) =>
     String(value ?? "")
       .toLowerCase()
       .normalize("NFD")
       .replace(/[\u0300-\u036f]/g, "");
 
-  // Nuevo: localizamos las cartas cuyo nombre coincide parcialmente
+  // Filtramos en tiempo real usando el término de la URL que coincide parcialmente
   const filteredPokemons = pokemons.filter((pokemon) =>
-    normalize(pokemon.pokemon_name).includes(normalize(searchTerm)),
+    normalizedName(pokemon.pokemon_name).includes(normalizedName(searchName)),
   );
 
   // Nuevo: seleccionamos la carta cuando el nombre coincide exactamente
-  const pokemonEncontrado = searchTerm
+  const pokemonEncontrado = searchName
     ? filteredPokemons.find(
-        (pokemon) => normalize(pokemon.pokemon_name) === normalize(searchTerm),
+        (pokemon) =>
+          normalizedName(pokemon.pokemon_name) === normalizedName(searchName),
       )
     : null;
 

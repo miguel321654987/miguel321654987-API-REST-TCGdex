@@ -9,13 +9,14 @@ export const Navbar = () => {
 
   // Busqueda por nombre: Obtenemos el valor del parámetro 'search' de la URL
   const [searchParams] = useSearchParams();
-  const searchTerm = searchParams.get("search") || "";
+  const searchName = searchParams.get("search") || "";
 
   // Nuevo: actualiza el parámetro de búsqueda mientras el usuario escribe
   const handleSearch = (event) => {
-    const value = event.target.value;
+    const pokemonName = event.target.value;
 
-    navigate(value ? `/?search=${encodeURIComponent(value)}` : "/");
+    // Va a /?search=... si escribes el nombre completo, si no sigue/redirige a / (Home)
+    navigate(pokemonName ? `/?search=${encodeURIComponent(pokemonName)}` : "/");
   };
 
   // Garantizamos que 'favoritos' siempre sea un array para evitar errores de .length
@@ -40,7 +41,7 @@ export const Navbar = () => {
             type="search"
             className="form-control form-control-sm"
             placeholder="Buscar por nombre"
-            value={searchTerm}
+            value={searchName} //Fuerza al input a mostrar SIEMPRE lo que dice la URL
             onChange={handleSearch}
             aria-label="Buscar por nombre"
             style={{ maxWidth: "250px" }}
