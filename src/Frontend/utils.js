@@ -91,3 +91,29 @@ export const switchModals = (closeId, openId) => {
     }, 150);
   }
 };
+
+// Nuevo: busca Pokémon por nombre ignorando mayúsculas y acentos
+export const searchPokemonsByName = (pokemons, searchName) => {
+  // Nuevo: normaliza los textos para comparar nombres de forma flexible
+  const normalize = (value) =>
+    String(value ?? "")
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "");
+
+  const normalizedSearchName = normalize(searchName);
+
+  // Nuevo: encuentra coincidencias parciales mientras el usuario escribe
+  const filteredPokemons = pokemons.filter((pokemon) =>
+    normalize(pokemon.pokemon_name).includes(normalizedSearchName),
+  );
+
+  // Nuevo: selecciona una carta únicamente con coincidencia exacta
+  const pokemonEncontrado = normalizedSearchName
+    ? filteredPokemons.find(
+        (pokemon) => normalize(pokemon.pokemon_name) === normalizedSearchName,
+      )
+    : null;
+
+  return pokemonEncontrado;
+};
