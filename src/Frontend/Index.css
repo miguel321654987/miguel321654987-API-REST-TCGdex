@@ -2,7 +2,7 @@
   font-size: calc(1.4rem + 1.8vw);
   background: linear-gradient(45deg, #46cef0, #ffda07, #ff8522de);
   -webkit-background-clip: text;
-  background-clip: text; /* ◄ Añade esta línea para resolver el aviso */
+  background-clip: text; /* ◄ Añade esta línea para resolver el aviso de compatibilidad de CSS */
   -webkit-text-fill-color: transparent;
   filter: drop-shadow(0px 4px 12px rgba(255, 193, 7, 0.5));
   letter-spacing: 1px;
@@ -22,4 +22,29 @@
   align-items: center;
   justify-content: center;
   z-index: 2;
+}
+
+/* EN Home: posiciona la carta encontrada por encima del contenido */
+.search-result-overlay {
+  position: fixed;
+  top: 90px;
+  right: 2rem;
+  z-index: 1050;
+  width: min(320px, calc(100vw - 2rem));
+}
+
+/* EN Home: limita el tamaño de la imagen de la carta superpuesta */
+.search-result-overlay img {
+  max-height: 280px;
+  object-fit: contain;
+}
+
+/* EN Home: adapta la carta superpuesta a pantallas pequeñas */
+@media (max-width: 576px) {
+  .search-result-overlay {
+    top: 140px;
+    right: 1rem;
+    left: 1rem;
+    width: auto;
+  }
 }
