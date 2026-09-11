@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import useGlobalReducer from "../hooks/useGlobalReducer.jsx";
 import defaultImage from "../../assets/no-card-image.png";
-import { openModalSafely } from "../utils.js";
+import { openModalSafely, searchPokemonsByName } from "../utils.js";
 
 export const Home = () => {
   const { store, actions } = useGlobalReducer();
@@ -17,25 +17,8 @@ export const Home = () => {
   // Lee lo que el Navbar escribió en la URL
   const searchName = searchParams.get("search") || "";
 
-  // Nuevo: normalizamos el texto para ignorar mayúsculas y acentos
-  const normalizedName = (value) =>
-    String(value ?? "") // Convierte el valor a texto y evita errores si el valor es null o undefined
-      .toLowerCase()
-      .normalize("NFD") // Separa los acentos de las letras
-      .replace(/[\u0300-\u036f]/g, ""); // Elimina los acentos.
-
-  // Filtramos en tiempo real usando el término de la URL que coincide parcialmente
-  const filteredPokemons = pokemons.filter((pokemon) =>
-    normalizedName(pokemon.pokemon_name).includes(normalizedName(searchName)),
-  );
-
-  // Nuevo: seleccionamos la carta cuando el nombre coincide exactamente
-  const pokemonEncontrado = searchName
-    ? filteredPokemons.find(
-        (pokemon) =>
-          normalizedName(pokemon.pokemon_name) === normalizedName(searchName),
-      )
-    : null;
+  // Nuevo: obtiene los resultados de búsqueda desde el helper reutilizable
+  const pokemonEncontrado = searchPokemonsByName(pokemons, searchName);
 
   // Reutilizamos la lista de favoritos del store
   const esFavorito = (pokemonId) =>
