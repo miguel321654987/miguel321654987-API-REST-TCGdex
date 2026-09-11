@@ -1,6 +1,6 @@
 import { useEffect } from "react";
+import { Link, useSearchParams } from "react-router-dom";
 import useGlobalReducer from "../hooks/useGlobalReducer.jsx";
-import { Link } from "react-router-dom";
 import defaultImage from "../../assets/no-card-image.png";
 import { openModalSafely } from "../utils.js";
 
@@ -10,6 +10,29 @@ export const Home = () => {
   // Extraemos las variables directamente desde store global
   const { list: pokemons, loading, error } = store.api;
   const { list: favoritos } = store.favorites;
+
+  // Nuevo: obtenemos desde la URL el nombre escrito en el Navbar
+  const [searchParams] = useSearchParams();
+  const searchTerm = searchParams.get("search") || "";
+
+  // Nuevo: normalizamos el texto para ignorar mayúsculas y acentos
+  const normalize = (value) =>
+    String(value ?? "")
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "");
+
+  // Nuevo: localizamos las cartas cuyo nombre coincide parcialmente
+  const filteredPokemons = pokemons.filter((pokemon) =>
+    normalize(pokemon.pokemon_name).includes(normalize(searchTerm)),
+  );
+
+  // Nuevo: seleccionamos la carta cuando el nombre coincide exactamente
+  const pokemonEncontrado = searchTerm
+    ? filteredPokemons.find(
+        (pokemon) => normalize(pokemon.pokemon_name) === normalize(searchTerm),
+      )
+    : null;
 
   // Reutilizamos la lista de favoritos del store
   const esFavorito = (pokemonId) =>
@@ -40,6 +63,34 @@ export const Home = () => {
         ¡Bienvenido a la PokeApp TCG!
       </h1>
 
+      {/* Nuevo: muestra una carta superpuesta cuando hay coincidencia exacta */}
+      {pokemonEncontrado && (
+        <div className="search-result-overlay">
+          <div className="card bg-dark text-light border-warning shadow-lg">
+            <img
+              src={pokemonEncontrado.image}
+              alt={pokemonEncontrado.pokemon_name}
+              className="card-img-top p-3"
+            />
+
+            <div className="card-body">
+              <h2 className="h5 text-warning">
+                {pokemonEncontrado.pokemon_name}
+              </h2>
+
+              <p className="text-secondary mb-3">ID: {pokemonEncontrado.id}</p>
+
+              <Link
+                to={`/pokemon/${pokemonEncontrado.id}`}
+                className="btn btn-warning btn-sm w-100"
+              >
+                Ver detalles
+              </Link>
+            </div>
+          </div>
+        </div>
+      )}
+
       {loading ? (
         <div className="mt-4">
           <p className="text-warning">Conectando con el servidor...</p>
@@ -56,6 +107,7 @@ export const Home = () => {
               No se recibieron datos desde el servidor de TCGdex.
             </p>
           ) : (
+            // Se mantienen todas las cartas visibles en pantalla
             pokemons.map((pokemon) => {
               const favoritoActual = esFavorito(pokemon.id);
 
@@ -90,6 +142,7 @@ export const Home = () => {
                         style={{ fontSize: "1.1rem" }}
                       ></i>
                     </button>
+
                     <div
                       className="p-3 bg-secondary bg-opacity-20 d-flex justify-content-center align-items-center"
                       style={{ minHeight: "220px" }}
@@ -105,11 +158,13 @@ export const Home = () => {
                         }}
                       />
                     </div>
+
                     <div className="card-body d-flex flex-column justify-content-between">
                       <h5 className="card-title text-capitalize fs-6 mb-3 text-start">
                         <span className="text-secondary fs-6 small block d-block mb-1">
                           ID: {pokemon.id}
                         </span>
+
                         {pokemon.pokemon_name}
                       </h5>
 

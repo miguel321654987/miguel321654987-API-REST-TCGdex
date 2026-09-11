@@ -11,6 +11,7 @@ export const Navbar = () => {
   const [searchParams] = useSearchParams();
   const searchTerm = searchParams.get("search") || "";
 
+  // Nuevo: actualiza el parámetro de búsqueda mientras el usuario escribe
   const handleSearch = (event) => {
     const value = event.target.value;
 
@@ -32,7 +33,9 @@ export const Navbar = () => {
         <Link to="/" className="navbar-brand font-weight-bold">
           🚀 PokemonWorld
         </Link>
+
         <div className="d-flex align-items-center gap-2">
+          {/* Nuevo: buscador situado en el Navbar */}
           <input
             type="search"
             className="form-control form-control-sm"
@@ -40,6 +43,7 @@ export const Navbar = () => {
             value={searchTerm}
             onChange={handleSearch}
             aria-label="Buscar por nombre"
+            style={{ maxWidth: "250px" }}
           />
 
           {/* Menú Dropdown de Favoritos */}
@@ -51,11 +55,13 @@ export const Navbar = () => {
               aria-expanded="false"
             >
               <span>Favoritos</span>
+
               {/* TOTAL DINÁMICO: Badge estilizado con Bootstrap 5 */}
               <span className="badge bg-dark text-info fw-bold">
                 {favoritos.length}
               </span>
             </button>
+
             <ul className="dropdown-Favoritos dropdown-menu dropdown-menu-end">
               {favoritos.length > 0 ? (
                 <>
@@ -72,6 +78,7 @@ export const Navbar = () => {
                         >
                           {fav.pokemon_name || fav.name || `Pokémon #${fav.id}`}
                         </span>
+
                         <i className="bi bi-heart-fill text-danger small"></i>
                       </Link>
                     </li>
@@ -97,9 +104,11 @@ export const Navbar = () => {
                       No hay favoritos
                     </span>
                   </li>
+
                   <li>
                     <hr className="dropdown-divider" />
                   </li>
+
                   <li>
                     <Link
                       to="/favoritos"
@@ -135,6 +144,7 @@ export const Navbar = () => {
                   !
                 </span>
               )}
+
               <button
                 type="button"
                 className="btn btn-danger btn-sm"
