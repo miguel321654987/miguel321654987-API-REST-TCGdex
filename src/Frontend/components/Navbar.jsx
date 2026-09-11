@@ -9,9 +9,10 @@ export const Navbar = () => {
 
   // Busqueda por nombre: Obtenemos el valor del parámetro 'search' de la URL
   const [searchParams] = useSearchParams();
+  // searchName es el valor del parámetro 'search' o "" si no existe
   const searchName = searchParams.get("search") || "";
 
-  // Nuevo: actualiza el parámetro de búsqueda mientras el usuario escribe
+  // Actualiza el parámetro de búsqueda mientras el usuario escribe
   const handleSearch = (event) => {
     const pokemonName = event.target.value;
 

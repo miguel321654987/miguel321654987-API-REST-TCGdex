@@ -11,17 +11,18 @@ export const Home = () => {
   const { list: pokemons, loading, error } = store.api;
   const { list: favoritos } = store.favorites;
 
-  // Nuevo: obtenemos desde la URL el nombre escrito en el Navbar
+  // Obtenemos desde la URL el nombre escrito en el Navbar
+
   const [searchParams] = useSearchParams();
   // Lee lo que el Navbar escribió en la URL
   const searchName = searchParams.get("search") || "";
 
   // Nuevo: normalizamos el texto para ignorar mayúsculas y acentos
   const normalizedName = (value) =>
-    String(value ?? "")
+    String(value ?? "") // Convierte el valor a texto y evita errores si el valor es null o undefined
       .toLowerCase()
-      .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "");
+      .normalize("NFD") // Separa los acentos de las letras
+      .replace(/[\u0300-\u036f]/g, ""); // Elimina los acentos.
 
   // Filtramos en tiempo real usando el término de la URL que coincide parcialmente
   const filteredPokemons = pokemons.filter((pokemon) =>
