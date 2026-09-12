@@ -117,3 +117,75 @@ export const searchPokemonsByName = (pokemons, searchName) => {
 
   return pokemonEncontrado;
 };
+
+// Filtra las cartas usando los criterios seleccionados desde Navbar o Home
+export const filterPokemons = (pokemons, filters = {}) => {
+  // Normaliza textos para ignorar mayúsculas, minúsculas y acentos
+  const normalize = (value) =>
+    String(value ?? "")
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .trim();
+
+  // Comprueba coincidencias parciales en campos de texto
+  const matchesText = (value, filterValue) => {
+    const normalizedFilter = normalize(filterValue);
+
+    if (!normalizedFilter) return true;
+
+    return normalize(value).includes(normalizedFilter);
+  };
+
+  // Comprueba los filtros aplicados a los ataques
+  const matchesAttackFilters = (pokemon) => {
+    const hasAttackFilters =
+      filters.attackName || filters.attackDamage || filters.attackEffect;
+
+    if (!hasAttackFilters) return true;
+
+    return (pokemon.attacks || []).some((attack) => {
+      return (
+        matchesText(attack.name, filters.attackName) &&
+        matchesText(attack.damage, filters.attackDamage) &&
+        matchesText(attack.effect, filters.attackEffect)
+      );
+    });
+  };
+
+  // Comprueba los límites mínimo y máximo de HP
+  const matchesHpFilters = (pokemon) => {
+    const hp = Number(pokemon.hp);
+    const minimumHp = filters.hpMin ? Number(filters.hpMin) : null;
+    const maximumHp = filters.hpMax ? Number(filters.hpMax) : null;
+
+    if (!minimumHp && !maximumHp) return true;
+    if (!Number.isFinite(hp)) return false;
+
+    if (minimumHp !== null && hp < minimumHp) return false;
+    if (maximumHp !== null && hp > maximumHp) return false;
+
+    return true;
+  };
+
+  // Devuelve únicamente las cartas que cumplen todos los filtros
+  return (pokemons || []).filter((pokemon) => {
+    const pokemonTypes = pokemon.types || [];
+    const expansionName = pokemon.set?.name || "";
+    const artistName = pokemon.illustrator || pokemon.artist || "";
+
+    const matchesType =
+      !filters.type ||
+      pokemonTypes.some((type) => normalize(type) === normalize(filters.type));
+
+    return (
+      matchesText(pokemon.pokemon_name || pokemon.name, filters.name) &&
+      matchesText(expansionName, filters.expansion) &&
+      matchesText(pokemon.rarity, filters.rarity) &&
+      matchesType &&
+      matchesHpFilters(pokemon) &&
+      matchesText(artistName, filters.artist) &&
+      matchesAttackFilters(pokemon)
+    );
+  });
+};
