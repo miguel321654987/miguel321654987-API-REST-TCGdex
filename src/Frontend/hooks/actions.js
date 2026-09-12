@@ -73,6 +73,13 @@ export const getActions = (store, dispatch) => {
             id: String(carta.id),
             pokemon_name: carta.name,
             image: carta.image ? `${carta.image}/low.png` : defaultImage, // Simplificado el fallback
+            // Nuevos datos disponibles para filtros y detalles
+            set: carta.set || {},
+            rarity: carta.rarity || "",
+            types: carta.types || [],
+            hp: carta.hp || "",
+            illustrator: carta.illustrator || "",
+            attacks: carta.attacks || [],
           }));
           dispatch({ type: "API_LIST_SUCCESS", payload: datosFormateados });
         } else {
