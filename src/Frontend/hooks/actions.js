@@ -3,22 +3,6 @@ import { closeModalSafely } from "../utils.js";
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:3000";
 
-// Función auxiliar para IDs con caracteres especiales.
-const obtenerIdCodificado = (id) => {
-  let idTexto = String(id).trim();
-
-  if (
-    idTexto.toLowerCase().startsWith("exu-") &&
-    (idTexto.includes("?") ||
-      idTexto.includes("%") ||
-      idTexto.toLowerCase().includes("3f"))
-  ) {
-    return "exu-%253F";
-  }
-
-  return encodeURIComponent(idTexto);
-};
-
 export const getActions = (store, dispatch) => {
   // 🔥 Helper interno para incluir el Token JWT de forma automática y segura
   const getAuthHeaders = () => {
@@ -34,6 +18,24 @@ export const getActions = (store, dispatch) => {
       "Content-Type": "application/json",
       Authorization: `Bearer ${token}`,
     };
+  };
+
+  // 🔥 Helper para IDs con caracteres especiales.
+  const obtenerIdCodificado = (id) => {
+    const idTexto = String(id).trim();
+
+    // Algunos IDs necesitan codificación adicional, pero conservamos todo el contenido original del ID.
+    if (
+      idTexto.toLowerCase().startsWith("exu-") &&
+      (idTexto.includes("?") ||
+        idTexto.includes("%") ||
+        idTexto.toLowerCase().includes("3f"))
+    ) {
+      return encodeURIComponent(encodeURIComponent(idTexto));
+    }
+
+    // Para IDs normales basta con una codificación.
+    return encodeURIComponent(idTexto);
   };
 
   return {
