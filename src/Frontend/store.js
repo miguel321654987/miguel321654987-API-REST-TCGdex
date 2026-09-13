@@ -4,10 +4,15 @@ export const initialStore = () => {
     token: localStorage.getItem("jwt-token") || null,
     user: null,
     api: {
-      listLoading: false, // Indica si se está cargando el listado básico de cartas.
-      detailsLoading: false, // Indica si se están cargando los detalles individuales.
-      list: [],
-      detail: null,
+      listLoading: false,
+      list: [], // Catálogo base de Home
+      detailsLoading: false,
+      detail: null, // Detalle de carta individual
+
+      filteredLoading: false,
+      filtered: [], // Resultado de filtros locales
+      searchLoading: false,
+      search: [], // Resultado de búsqueda puntual
       error: null,
     },
     favorites: {
@@ -39,7 +44,7 @@ export default function storeReducer(store, action = {}) {
         user: null,
         message: { msg: "👋 ¡Sesión cerrada con éxito!", status: 200 },
         favorites: {
-          list: [], // también limpiamos al cerrar sesión
+          list: [],
           loading: false,
           error: null,
         },
@@ -51,7 +56,7 @@ export default function storeReducer(store, action = {}) {
         message: action.payload,
       };
 
-    // Indica que ha comenzado la carga del listado inicial.
+    // Indica que ha comenzado la carga del listado inicial de Home.
     case "API_LIST_LOADING":
       return {
         ...store,
@@ -62,7 +67,7 @@ export default function storeReducer(store, action = {}) {
         },
       };
 
-    // Indica que ha comenzado la carga de los detalles por ID.
+    // Indica que ha comenzado la carga del detalle por ID.
     case "API_DETAILS_LOADING":
       return {
         ...store,
@@ -73,13 +78,35 @@ export default function storeReducer(store, action = {}) {
         },
       };
 
+    // Indica que ha comenzado la carga de filtros locales.
+    case "API_FILTERED_LOADING":
+      return {
+        ...store,
+        api: {
+          ...store.api,
+          filteredLoading: true,
+          error: null,
+        },
+      };
+
+    // Indica que ha comenzado la carga de búsqueda puntual.
+    case "API_SEARCH_LOADING":
+      return {
+        ...store,
+        api: {
+          ...store.api,
+          searchLoading: true,
+          error: null,
+        },
+      };
+
     case "API_LIST_SUCCESS":
       return {
         ...store,
         api: {
           ...store.api,
-          listLoading: false, // El listado básico ya terminó de cargarse.
-          list: action.payload, // Guarda solo la lista
+          listLoading: false,
+          list: action.payload,
           error: null,
         },
       };
@@ -89,8 +116,30 @@ export default function storeReducer(store, action = {}) {
         ...store,
         api: {
           ...store.api,
-          detailsLoading: false, // La carga del detalle individual terminó.
-          detail: action.payload, // Guarda solo el detalle individual
+          detailsLoading: false,
+          detail: action.payload,
+          error: null,
+        },
+      };
+
+    case "API_FILTERED_SUCCESS":
+      return {
+        ...store,
+        api: {
+          ...store.api,
+          filteredLoading: false,
+          filtered: action.payload,
+          error: null,
+        },
+      };
+
+    case "API_SEARCH_SUCCESS":
+      return {
+        ...store,
+        api: {
+          ...store.api,
+          searchLoading: false,
+          search: action.payload,
           error: null,
         },
       };
@@ -100,8 +149,10 @@ export default function storeReducer(store, action = {}) {
         ...store,
         api: {
           ...store.api,
-          listLoading: false, // Detenemos cualquier carga activa cuando ocurre un error.
+          listLoading: false,
           detailsLoading: false,
+          filteredLoading: false,
+          searchLoading: false,
           error: action.payload,
         },
       };
@@ -111,12 +162,12 @@ export default function storeReducer(store, action = {}) {
         ...store,
         favorites: {
           loading: false,
-          list: [], // vaciamos el caché local del usuario anterior
+          list: [],
           error: null,
         },
       };
 
-    case "SET_FAVORITES": // Cargar lista de favoritos desde el backend
+    case "SET_FAVORITES":
       return {
         ...store,
         favorites: {

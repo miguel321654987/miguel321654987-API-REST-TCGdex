@@ -70,7 +70,7 @@ export const getActions = (store, dispatch) => {
       }, 3000);
     },
 
-    // === 👾 CARGA INICIAL DE HOME ===
+    //  👾 CARGA INICIAL DE HOME ===
     obtenerPokemons: async () => {
       // Si ya hay datos cargados en Home, no repetimos la petición.
       if (store.api.list && store.api.list.length > 0) return;
@@ -121,7 +121,7 @@ export const getActions = (store, dispatch) => {
       });
     },
 
-    // === 👾 BÚSQUEDA/FILTRO INDEPENDIENTE DE HOME ===
+    //  👾 BÚSQUEDA/FILTRO INDEPENDIENTE DE HOME ===
     buscarCartasPorFiltro: async (filters = {}) => {
       // Si no hay ningún filtro activo, devolvemos la lista base ya almacenada.
       const hayFiltroActivo = Object.values(filters).some(
@@ -188,7 +188,7 @@ export const getActions = (store, dispatch) => {
       }
     },
 
-    // === 👾 PETICIONES DETALLE POKÉMON ===
+    //  👾 PETICIONES DETALLE POKÉMON ===
     obtenerDetallePokemon: async (id) => {
       try {
         // Home ya no guarda datos completos de cada carta.
@@ -233,7 +233,7 @@ export const getActions = (store, dispatch) => {
       dispatch({ type: "API_DETAIL_SUCCESS", payload: null });
     },
 
-    // === ❤️ GESTIÓN DE FAVORITOS
+    //  ❤️ GESTIÓN DE FAVORITOS
     cargarFavoritosBackend: async (userId) => {
       // antes de pedir la lista del nuevo usuario, limpiamos el estado local
       dispatch({ type: "CLEAR_FAVORITES" });

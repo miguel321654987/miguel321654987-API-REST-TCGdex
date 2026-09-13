@@ -92,7 +92,7 @@ export const switchModals = (closeId, openId) => {
   }
 };
 
-// Nuevo: busca Pokémon por nombre ignorando mayúsculas y acentos
+//* 🔧 HELPER PARA BUSCAR POKÉMON POR NOMBRE IGNORANDO MAYÚSCULAS Y ACENTOS
 export const searchPokemonsByName = (pokemons, searchName) => {
   // Nuevo: normaliza los textos para comparar nombres de forma flexible
   const normalize = (value) =>
@@ -118,7 +118,7 @@ export const searchPokemonsByName = (pokemons, searchName) => {
   return pokemonEncontrado;
 };
 
-// Filtra las cartas usando los criterios seleccionados desde Navbar o Home
+//* 🔧 HELPER PARA FILTRAR CARTAS USANDO INPUT EN NAVBAR
 export const filterPokemons = (pokemons, filters = {}) => {
   const normalize = (value) => {
     // Si es null, undefined, o una cadena vacía, devolvemos "".
