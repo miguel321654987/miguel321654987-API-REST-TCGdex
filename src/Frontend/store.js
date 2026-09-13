@@ -105,14 +105,6 @@ export default function storeReducer(store, action = {}) {
           error: action.payload,
         },
       };
-      return {
-        ...store,
-        api: {
-          ...store.api,
-          loading: false,
-          error: action.payload,
-        },
-      };
 
     case "CLEAR_FAVORITES":
       return {
