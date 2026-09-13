@@ -2,23 +2,26 @@ import { useEffect } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import useGlobalReducer from "../hooks/useGlobalReducer.jsx";
 import defaultImage from "../../assets/no-card-image.png";
-import { openModalSafely, searchPokemonsByName } from "../utils.js";
+import { openModalSafely } from "../utils.js";
 
 export const Home = () => {
   const { store, actions } = useGlobalReducer();
 
   // Extraemos las variables directamente desde store global
-  const { list: pokemons, listLoading, error } = store.api;
+  const { list: pokemons, filtered, listLoading, error } = store.api;
+
   const { list: favoritos } = store.favorites;
 
-  // Obtenemos desde la URL el nombre escrito en el Navbar
-
+  // Obtenemos desde la URL el valor escrito en el Navbar
   const [searchParams] = useSearchParams();
-  // Lee lo que el Navbar escribió en la URL
-  const searchName = searchParams.get("search") || "";
 
-  // Nuevo: obtiene los resultados de búsqueda desde el helper reutilizable
-  const pokemonEncontrado = searchPokemonsByName(pokemons, searchName);
+  // Lee el filtro que el Navbar escribió en la URL
+  const searchFilter = searchParams.get("filter") || "";
+
+  // El resultado ya fue calculado por buscarCartasPorFiltro
+  // y almacenado en store.api.filtered.
+  const pokemonEncontrado =
+    searchFilter.trim() && filtered.length > 0 ? filtered[0] : null;
 
   // Reutilizamos la lista de favoritos del store
   const esFavorito = (pokemonId) =>

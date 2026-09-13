@@ -8,7 +8,6 @@ export const initialStore = () => {
       list: [], // Catálogo base de Home
       detailsLoading: false,
       detail: null, // Detalle de carta individual
-
       filteredLoading: false,
       filtered: [], // Resultado de filtros locales
       searchLoading: false,

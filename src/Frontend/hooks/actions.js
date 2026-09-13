@@ -110,7 +110,6 @@ export const getActions = (store, dispatch) => {
       const cartasBasicas = listaCartas.map((carta) => ({
         id: String(carta.id),
         pokemon_name: carta.name,
-        name: carta.name,
         image: carta.image ? `${carta.image}/low.png` : defaultImage,
       }));
 
@@ -129,20 +128,31 @@ export const getActions = (store, dispatch) => {
       );
 
       if (!hayFiltroActivo) {
-        return store.api.list || [];
+        dispatch({
+          type: "API_FILTERED_SUCCESS",
+          payload: [],
+        });
+
+        return [];
       }
 
-      // 1) Si Home ya cargó la lista base, podemos filtrar localmente sin hacer fetch extra.
       if (store.api.list && store.api.list.length > 0) {
-        return filterPokemons(store.api.list, filters);
+        const filtradas = filterPokemons(store.api.list, filters);
+
+        dispatch({
+          type: "API_FILTERED_SUCCESS",
+          payload: filtradas,
+        });
+
+        return filtradas;
       }
 
       // 2) Si no hay datos base, hacemos una petición puntual específica para buscar.
       // Este fetch es independiente del de Home y no modifica api.list.
-      dispatch({ type: "API_LIST_LOADING" });
+      dispatch({ type: "API_FILTERED_LOADING" });
 
       try {
-        const query = (filters.name || "").trim();
+        const query = (filters.filter || "").trim();
 
         // Si el campo de búsqueda está vacío, no hacemos la llamada.
         if (!query) {
@@ -178,13 +188,13 @@ export const getActions = (store, dispatch) => {
         // como paso final de filtrado, sin tocar el flujo de Home.
         const filtradas = filterPokemons(cartasBusca, filters);
 
+        dispatch({ type: "API_FILTERED_SUCCESS", payload: filtradas });
+
         return filtradas;
       } catch (err) {
         console.error("Error al buscar cartas por filtro:", err);
         dispatch({ type: "API_ERROR", payload: err.message });
         return [];
-      } finally {
-        dispatch({ type: "API_LIST_SUCCESS", payload: store.api.list || [] });
       }
     },
 
