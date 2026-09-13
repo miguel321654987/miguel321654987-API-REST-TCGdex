@@ -3,6 +3,22 @@ import { closeModalSafely } from "../utils.js";
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:3000";
 
+// Función auxiliar para IDs con caracteres especiales.
+const obtenerIdCodificado = (id) => {
+  let idTexto = String(id).trim();
+
+  if (
+    idTexto.toLowerCase().startsWith("exu-") &&
+    (idTexto.includes("?") ||
+      idTexto.includes("%") ||
+      idTexto.toLowerCase().includes("3f"))
+  ) {
+    return "exu-%253F";
+  }
+
+  return encodeURIComponent(idTexto);
+};
+
 export const getActions = (store, dispatch) => {
   // 🔥 Helper interno para incluir el Token JWT de forma automática y segura
   const getAuthHeaders = () => {
@@ -74,19 +90,7 @@ export const getActions = (store, dispatch) => {
           const datosFormateados = await Promise.all(
             listaCartas.map(async (carta) => {
               // Codificamos el ID antes de utilizarlo en la URL del detalle.
-              let idTexto = String(carta.id).trim();
-
-              // Conservamos el tratamiento especial para IDs con caracteres especiales.
-              if (
-                idTexto.toLowerCase().startsWith("exu-") &&
-                (idTexto.includes("?") ||
-                  idTexto.includes("%") ||
-                  idTexto.toLowerCase().includes("3f"))
-              ) {
-                idTexto = "exu-%253F";
-              } else {
-                idTexto = encodeURIComponent(idTexto);
-              }
+              let idTexto = obtenerIdCodificado(carta.id);
 
               // Esta petición proporciona HP, ataques, expansión, rareza y tipos.
               const detalleResponse = await fetch(
@@ -162,17 +166,7 @@ export const getActions = (store, dispatch) => {
         dispatch({ type: "API_LOADING" });
 
         // Detector de caracteres especiales PARA EL SEGUNDO POKEMON
-        let idTexto = String(id).trim();
-        if (
-          idTexto.toLowerCase().startsWith("exu-") &&
-          (idTexto.includes("?") ||
-            idTexto.includes("%") ||
-            idTexto.toLowerCase().includes("3f"))
-        ) {
-          idTexto = "exu-%253F"; // Doble codificación requerida PARA EL SEGUNDO POKEMON
-        } else {
-          idTexto = encodeURIComponent(idTexto);
-        }
+        let idTexto = obtenerIdCodificado(id);
 
         const response = await fetch(
           `https://api.tcgdex.net/v2/en/cards/${idTexto}`,
