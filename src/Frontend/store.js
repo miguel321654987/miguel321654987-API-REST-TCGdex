@@ -4,7 +4,8 @@ export const initialStore = () => {
     token: localStorage.getItem("jwt-token") || null,
     user: null,
     api: {
-      loading: false,
+      listLoading: false, // Indica si se está cargando el listado básico de cartas.
+      detailsLoading: false, // Indica si se están cargando los detalles individuales.
       list: [],
       detail: null,
       error: null,
@@ -50,12 +51,24 @@ export default function storeReducer(store, action = {}) {
         message: action.payload,
       };
 
-    case "API_LOADING":
+    // Indica que ha comenzado la carga del listado inicial.
+    case "API_LIST_LOADING":
       return {
         ...store,
         api: {
           ...store.api,
-          loading: true,
+          listLoading: true,
+          error: null,
+        },
+      };
+
+    // Indica que ha comenzado la carga de los detalles por ID.
+    case "API_DETAILS_LOADING":
+      return {
+        ...store,
+        api: {
+          ...store.api,
+          detailsLoading: true,
           error: null,
         },
       };
@@ -65,7 +78,7 @@ export default function storeReducer(store, action = {}) {
         ...store,
         api: {
           ...store.api,
-          loading: false,
+          listLoading: false, // El listado básico ya terminó de cargarse.
           list: action.payload, // Guarda solo la lista
           error: null,
         },
@@ -76,13 +89,22 @@ export default function storeReducer(store, action = {}) {
         ...store,
         api: {
           ...store.api,
-          loading: false,
+          detailsLoading: false, // La carga del detalle individual terminó.
           detail: action.payload, // Guarda solo el detalle individual
           error: null,
         },
       };
 
     case "API_ERROR":
+      return {
+        ...store,
+        api: {
+          ...store.api,
+          listLoading: false, // Detenemos cualquier carga activa cuando ocurre un error.
+          detailsLoading: false,
+          error: action.payload,
+        },
+      };
       return {
         ...store,
         api: {
