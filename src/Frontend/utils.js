@@ -120,30 +120,44 @@ export const searchPokemonsByName = (pokemons, searchName) => {
 
 // Filtra las cartas usando los criterios seleccionados desde Navbar o Home
 export const filterPokemons = (pokemons, filters = {}) => {
-  // Normaliza textos para ignorar mayúsculas, minúsculas y acentos
-  const normalize = (value) =>
-    String(value ?? "")
+  const normalize = (value) => {
+    // Si es null, undefined, o una cadena vacía, devolvemos "" de inmediato
+    if (value === null || value === undefined || value === "") return "";
+
+    String(value ?? "") // Si value es null o undefined, lo convierte a ""
       .toLowerCase()
-      .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "")
+      .normalize("NFD") // Descompone caracteres con tildes o diacríticos en componentes individuales
+      .replace(/[\u0300-\u036f]/g, "") // eliminar todos los acentos flotantes y une caracteres
       .trim();
-
-  // Comprueba coincidencias parciales en campos de texto
-  const matchesText = (value, filterValue) => {
-    const normalizedFilter = normalize(filterValue);
-
-    if (!normalizedFilter) return true;
-
-    return normalize(value).includes(normalizedFilter);
   };
 
-  // Comprueba los filtros aplicados a los ataques
+  // Comprueba si un valor contiene el texto buscado.
+  const matchesText = (value, filterValue) => {
+    // Si el buscador no existe o solo tiene espacios, mostramos todo (true) sin procesar nada más
+    if (!filterValue || !filterValue.trim()) return true;
+
+    // Si el campo de la lista está vacío, nulo o undefined,
+    // no puede coincidir con un buscador que ya sabemos que SÍ tiene texto.
+    if (value === null || value === undefined || value === "") return false;
+
+    // PROCESAMIENTO: Solo si ambos tienen contenido válido, normalizamos y comparamos
+    const normalizedFilter = normalize(filterValue);
+    const normalizedValue = normalize(value);
+
+    return normalizedValue.includes(normalizedFilter);
+  };
+
+  // Comprueba si la carta cumple los filtros relacionados con los ataques.
+  // Una carta coincide cuando al menos uno de sus ataques cumple todos
+  // los criterios de ataque activos.
   const matchesAttackFilters = (pokemon) => {
     const hasAttackFilters =
       filters.attackName || filters.attackDamage || filters.attackEffect;
 
+    // Si no se ha escrito ningún filtro de ataque, no se descarta la carta.
     if (!hasAttackFilters) return true;
 
+    // "some" devuelve true cuando encuentra al menos un ataque coincidente.
     return (pokemon.attacks || []).some((attack) => {
       return (
         matchesText(attack.name, filters.attackName) &&
@@ -153,33 +167,54 @@ export const filterPokemons = (pokemons, filters = {}) => {
     });
   };
 
-  // Comprueba los límites mínimo y máximo de HP
+  // Comprueba si los puntos de vida están dentro del rango seleccionado.
   const matchesHpFilters = (pokemon) => {
     const hp = Number(pokemon.hp);
-    const minimumHp = filters.hpMin ? Number(filters.hpMin) : null;
-    const maximumHp = filters.hpMax ? Number(filters.hpMax) : null;
 
-    if (!minimumHp && !maximumHp) return true;
+    // Un filtro vacío se representa como null para diferenciarlo del valor 0.
+    const minimumHp =
+      filters.hpMin !== "" && filters.hpMin !== undefined
+        ? Number(filters.hpMin)
+        : null;
+
+    const maximumHp =
+      filters.hpMax !== "" && filters.hpMax !== undefined
+        ? Number(filters.hpMax)
+        : null;
+
+    // Si no hay límites de HP, la carta cumple esta condición.
+    if (minimumHp === null && maximumHp === null) return true;
+
+    // Las cartas sin un HP numérico no pueden compararse con un rango.
     if (!Number.isFinite(hp)) return false;
 
+    // Descarta cartas por debajo del HP mínimo.
     if (minimumHp !== null && hp < minimumHp) return false;
+
+    // Descarta cartas por encima del HP máximo.
     if (maximumHp !== null && hp > maximumHp) return false;
 
     return true;
   };
 
-  // Devuelve únicamente las cartas que cumplen todos los filtros
+  // Recorre la colección y conserva las cartas que cumplen todos los filtros.
   return (pokemons || []).filter((pokemon) => {
-    const pokemonTypes = pokemon.types || [];
+    // Algunos datos pueden no existir en determinadas cartas.
+    // Por eso usamos valores alternativos seguros.
+    const pokemonName = pokemon.pokemon_name || pokemon.name || "";
     const expansionName = pokemon.set?.name || "";
+    const pokemonTypes = pokemon.types || [];
     const artistName = pokemon.illustrator || pokemon.artist || "";
 
+    // Una carta coincide por tipo si contiene el tipo seleccionado.
     const matchesType =
       !filters.type ||
       pokemonTypes.some((type) => normalize(type) === normalize(filters.type));
 
+    // Todos los criterios se combinan con AND:
+    // la carta debe cumplir cada filtro activo.
     return (
-      matchesText(pokemon.pokemon_name || pokemon.name, filters.name) &&
+      matchesText(pokemonName, filters.name) &&
       matchesText(expansionName, filters.expansion) &&
       matchesText(pokemon.rarity, filters.rarity) &&
       matchesType &&
