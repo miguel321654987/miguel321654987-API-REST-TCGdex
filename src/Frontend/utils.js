@@ -121,7 +121,7 @@ export const searchPokemonsByName = (pokemons, searchName) => {
 // Filtra las cartas usando los criterios seleccionados desde Navbar o Home
 export const filterPokemons = (pokemons, filters = {}) => {
   const normalize = (value) => {
-    // Si es null, undefined, o una cadena vacía, devolvemos "" de inmediato
+    // Si es null, undefined, o una cadena vacía, devolvemos "".
     if (value === null || value === undefined || value === "") return "";
 
     String(value ?? "") // Si value es null o undefined, lo convierte a ""
@@ -148,8 +148,6 @@ export const filterPokemons = (pokemons, filters = {}) => {
   };
 
   // Comprueba si la carta cumple los filtros relacionados con los ataques.
-  // Una carta coincide cuando al menos uno de sus ataques cumple todos
-  // los criterios de ataque activos.
   const matchesAttackFilters = (pokemon) => {
     const hasAttackFilters =
       filters.attackName || filters.attackDamage || filters.attackEffect;
