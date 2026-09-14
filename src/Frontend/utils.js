@@ -92,59 +92,64 @@ export const switchModals = (closeId, openId) => {
   }
 };
 
-// Nuevo: busca Pokémon por nombre ignorando mayúsculas y acentos
-export const searchPokemonsByName = (pokemons, searchName) => {
-  // Nuevo: normaliza los textos para comparar nombres de forma flexible
-  const normalize = (value) =>
-    String(value ?? "")
-      .toLowerCase()
-      .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "");
-
-  const normalizedSearchName = normalize(searchName);
-
-  // Nuevo: encuentra coincidencias parciales mientras el usuario escribe
-  const filteredPokemons = pokemons.filter((pokemon) =>
-    normalize(pokemon.pokemon_name).includes(normalizedSearchName),
-  );
-
-  // Nuevo: selecciona una carta únicamente con coincidencia exacta
-  const pokemonEncontrado = normalizedSearchName
-    ? filteredPokemons.find(
-        (pokemon) => normalize(pokemon.pokemon_name) === normalizedSearchName,
-      )
-    : null;
-
-  return pokemonEncontrado;
-};
-
-// Filtra las cartas usando los criterios seleccionados desde Navbar o Home
+//* 🔧 HELPER PARA FILTRAR CARTAS USANDO INPUT EN NAVBAR
 export const filterPokemons = (pokemons, filters = {}) => {
   const normalize = (value) => {
     // Si es null, undefined, o una cadena vacía, devolvemos "".
     if (value === null || value === undefined || value === "") return "";
 
-    String(value ?? "") // Si value es null o undefined, lo convierte a ""
+    // Normalizamos mayúsculas, espacios y acentos para comparar correctamente.
+    return String(value)
       .toLowerCase()
-      .normalize("NFD") // Descompone caracteres con tildes o diacríticos en componentes individuales
-      .replace(/[\u0300-\u036f]/g, "") // eliminar todos los acentos flotantes y une caracteres
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
       .trim();
   };
 
   // Comprueba si un valor contiene el texto buscado.
   const matchesText = (value, filterValue) => {
-    // Si el buscador no existe o solo tiene espacios, mostramos todo (true) sin procesar nada más
-    if (!filterValue || !filterValue.trim()) return true;
+    // Si el filtro no existe o solo contiene espacios, no restringimos el resultado.
+    if (
+      filterValue === null ||
+      filterValue === undefined ||
+      normalize(filterValue) === ""
+    ) {
+      return true;
+    }
 
-    // Si el campo de la lista está vacío, nulo o undefined,
-    // no puede coincidir con un buscador que ya sabemos que SÍ tiene texto.
+    // Si el valor de la carta está vacío, no puede coincidir con el filtro.
     if (value === null || value === undefined || value === "") return false;
 
-    // PROCESAMIENTO: Solo si ambos tienen contenido válido, normalizamos y comparamos
-    const normalizedFilter = normalize(filterValue);
-    const normalizedValue = normalize(value);
+    return normalize(value).includes(normalize(filterValue));
+  };
 
-    return normalizedValue.includes(normalizedFilter);
+  // Comprueba el filtro general introducido desde el Navbar.
+  // Puede coincidir con ID, nombre, tipo, HP, rareza, expansión o artista.
+  const matchesGenericFilter = (pokemon) => {
+    if (!filters.filter || normalize(filters.filter) === "") return true;
+
+    const genericFilter = normalize(filters.filter);
+
+    const searchableValues = [
+      pokemon.id,
+      pokemon.name,
+      pokemon.pokemon_name,
+      pokemon.hp,
+      pokemon.rarity,
+      pokemon.illustrator,
+      pokemon.artist,
+      pokemon.set?.name,
+      ...(pokemon.types || []),
+      ...(pokemon.attacks || []).flatMap((attack) => [
+        attack.name,
+        attack.damage,
+        attack.effect,
+      ]),
+    ];
+
+    return searchableValues.some((value) =>
+      normalize(value).includes(genericFilter),
+    );
   };
 
   // Comprueba si la carta cumple los filtros relacionados con los ataques.
@@ -212,6 +217,7 @@ export const filterPokemons = (pokemons, filters = {}) => {
     // Todos los criterios se combinan con AND:
     // la carta debe cumplir cada filtro activo.
     return (
+      matchesGenericFilter(pokemon) &&
       matchesText(pokemonName, filters.name) &&
       matchesText(expansionName, filters.expansion) &&
       matchesText(pokemon.rarity, filters.rarity) &&

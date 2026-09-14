@@ -7,17 +7,19 @@ export const Navbar = () => {
   const { store, actions } = useGlobalReducer();
   const navigate = useNavigate();
 
-  // Busqueda por nombre: Obtenemos el valor del parámetro 'search' de la URL
+  // Busqueda por parámetro filtrado: Obtenemos el valor del parámetro 'search' de la URL
   const [searchParams] = useSearchParams();
-  // searchName es el valor del parámetro 'search' o "" si no existe
-  const searchName = searchParams.get("search") || "";
+  // searchName es el valor del parámetro 'filter' o "" si no existe
+  const searchFilter = searchParams.get("filter") || "";
 
   // Actualiza el parámetro de búsqueda mientras el usuario escribe
-  const handleSearch = (event) => {
-    const pokemonName = event.target.value;
+  const handleFilter = (event) => {
+    const filterValue = event.target.value;
 
-    // Va a /?search=... si escribes el nombre completo, si no sigue/redirige a / (Home)
-    navigate(pokemonName ? `/?search=${encodeURIComponent(pokemonName)}` : "/");
+    actions.buscarCartasPorFiltro({ filter: filterValue });
+
+    // Conserva el valor escrito en la URL para que Home pueda leerlo.
+    navigate(filterValue ? `/?filter=${encodeURIComponent(filterValue)}` : "/");
   };
 
   // Garantizamos que 'favoritos' siempre sea un array para evitar errores de .length
@@ -41,10 +43,10 @@ export const Navbar = () => {
           <input
             type="search"
             className="form-control form-control-sm"
-            placeholder="Buscar por nombre"
-            value={searchName} //Fuerza al input a mostrar SIEMPRE lo que dice la URL
-            onChange={handleSearch}
-            aria-label="Buscar por nombre"
+            placeholder="Buscar cartas"
+            value={searchFilter} //Fuerza al input a mostrar SIEMPRE lo que dice la URL
+            onChange={handleFilter}
+            aria-label="Buscar cartas"
             style={{ maxWidth: "250px" }}
           />
 

@@ -6,7 +6,7 @@ export const PokemonDetail = () => {
   const { id } = useParams();
   const { store, actions } = useGlobalReducer();
 
-  const { detail: card, loading, error } = store.api;
+  const { detail: card, detailsLoading, error } = store.api;
 
   useEffect(() => {
     if (id) {
@@ -25,7 +25,7 @@ export const PokemonDetail = () => {
         ← Volver a la Colección
       </Link>
 
-      {loading ? (
+      {detailsLoading ? (
         <div className="text-center mt-5">
           <p className="text-warning">
             Cargando datos oficiales de la carta...

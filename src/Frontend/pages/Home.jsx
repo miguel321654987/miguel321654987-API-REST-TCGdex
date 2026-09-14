@@ -2,23 +2,26 @@ import { useEffect } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import useGlobalReducer from "../hooks/useGlobalReducer.jsx";
 import defaultImage from "../../assets/no-card-image.png";
-import { openModalSafely, searchPokemonsByName } from "../utils.js";
+import { openModalSafely } from "../utils.js";
 
 export const Home = () => {
   const { store, actions } = useGlobalReducer();
 
   // Extraemos las variables directamente desde store global
-  const { list: pokemons, loading, error } = store.api;
+  const { list: pokemons, filtered, listLoading, error } = store.api;
+
   const { list: favoritos } = store.favorites;
 
-  // Obtenemos desde la URL el nombre escrito en el Navbar
-
+  // Obtenemos desde la URL el valor escrito en el Navbar
   const [searchParams] = useSearchParams();
-  // Lee lo que el Navbar escribió en la URL
-  const searchName = searchParams.get("search") || "";
 
-  // Nuevo: obtiene los resultados de búsqueda desde el helper reutilizable
-  const pokemonEncontrado = searchPokemonsByName(pokemons, searchName);
+  // Lee el filtro que el Navbar escribió en la URL
+  const searchFilter = searchParams.get("filter") || "";
+
+  // El resultado ya fue calculado por buscarCartasPorFiltro
+  // y almacenado en store.api.filtered.
+  const pokemonEncontrado =
+    searchFilter.trim() && filtered.length > 0 ? filtered[0] : null;
 
   // Reutilizamos la lista de favoritos del store
   const esFavorito = (pokemonId) =>
@@ -77,7 +80,7 @@ export const Home = () => {
         </div>
       )}
 
-      {loading ? (
+      {listLoading ? (
         <div className="mt-4">
           <p className="text-warning">Conectando con el servidor...</p>
           <div className="spinner-border text-warning" role="status"></div>
@@ -86,86 +89,86 @@ export const Home = () => {
         <p className="text-danger mt-4">
           Hubo un error al cargar las cartas: {error}
         </p>
-      ) : (
+      ) : !pokemons || pokemons.length === 0 ? (
         <div className="row g-4 justify-content-center mt-2">
-          {!pokemons || pokemons.length === 0 ? (
-            <p className="text-danger">
-              No se recibieron datos desde el servidor de TCGdex.
-            </p>
-          ) : (
-            // Se mantienen todas las cartas visibles en pantalla
-            pokemons.map((pokemon) => {
-              const favoritoActual = esFavorito(pokemon.id);
+          <p className="text-danger">
+            No se recibieron datos desde el servidor de TCGdex.
+          </p>
+        </div>
+      ) : (
+        // Se mantienen todas las cartas visibles en pantalla
+        <div className="row g-4 justify-content-center mt-2">
+          {pokemons.map((pokemon) => {
+            const favoritoActual = esFavorito(pokemon.id);
 
-              return (
-                <div key={pokemon.id} className="col-6 col-md-4 col-lg-3">
-                  <div className="card bg-dark text-light border-secondary h-100 shadow-sm position-relative">
-                    {/* Botón con aspecto de corazón para añadir o borrar favoritos */}
-                    <button
-                      type="button"
-                      className={`btn btn-sm position-absolute top-0 end-0 m-2 rounded-circle ${
-                        favoritoActual
-                          ? "btn-danger"
-                          : "btn-outline-light bg-dark bg-opacity-75"
+            return (
+              <div key={pokemon.id} className="col-6 col-md-4 col-lg-3">
+                <div className="card bg-dark text-light border-secondary h-100 shadow-sm position-relative">
+                  {/* Botón con aspecto de corazón para añadir o borrar favoritos */}
+                  <button
+                    type="button"
+                    className={`btn btn-sm position-absolute top-0 end-0 m-2 rounded-circle ${
+                      favoritoActual
+                        ? "btn-danger"
+                        : "btn-outline-light bg-dark bg-opacity-75"
+                    }`}
+                    onClick={() => handleToggleFavorite(pokemon)}
+                    aria-label={
+                      favoritoActual
+                        ? "Quitar de favoritos"
+                        : "Añadir a favoritos"
+                    }
+                    // tooltip opcional para accesibilidad y UX
+                    title={
+                      favoritoActual
+                        ? "Quitar de favoritos"
+                        : "Añadir a favoritos"
+                    }
+                  >
+                    <i
+                      className={`bi ${
+                        favoritoActual ? "bi-heart-fill" : "bi-heart"
                       }`}
-                      onClick={() => handleToggleFavorite(pokemon)}
-                      aria-label={
-                        favoritoActual
-                          ? "Quitar de favoritos"
-                          : "Añadir a favoritos"
-                      }
-                      // tooltip opcional para accesibilidad y UX
-                      title={
-                        favoritoActual
-                          ? "Quitar de favoritos"
-                          : "Añadir a favoritos"
-                      }
+                      style={{ fontSize: "1.1rem" }}
+                    ></i>
+                  </button>
+
+                  <div
+                    className="p-3 bg-secondary bg-opacity-20 d-flex justify-content-center align-items-center"
+                    style={{ minHeight: "220px" }}
+                  >
+                    <img
+                      src={pokemon.image}
+                      alt={pokemon.pokemon_name}
+                      className="img-fluid"
+                      style={{ maxHeight: "180px", objectFit: "contain" }}
+                      onError={(e) => {
+                        e.target.onerror = null;
+                        e.target.src = defaultImage;
+                      }}
+                    />
+                  </div>
+
+                  <div className="card-body d-flex flex-column justify-content-between">
+                    <h5 className="card-title text-capitalize fs-6 mb-3 text-start">
+                      <span className="text-secondary fs-6 small block d-block mb-1">
+                        ID: {pokemon.id}
+                      </span>
+
+                      {pokemon.pokemon_name}
+                    </h5>
+
+                    <Link
+                      to={`/pokemon/${pokemon.id}`}
+                      className="btn btn-outline-warning btn-sm w-100"
                     >
-                      <i
-                        className={`bi ${
-                          favoritoActual ? "bi-heart-fill" : "bi-heart"
-                        }`}
-                        style={{ fontSize: "1.1rem" }}
-                      ></i>
-                    </button>
-
-                    <div
-                      className="p-3 bg-secondary bg-opacity-20 d-flex justify-content-center align-items-center"
-                      style={{ minHeight: "220px" }}
-                    >
-                      <img
-                        src={pokemon.image}
-                        alt={pokemon.pokemon_name}
-                        className="img-fluid"
-                        style={{ maxHeight: "180px", objectFit: "contain" }}
-                        onError={(e) => {
-                          e.target.onerror = null;
-                          e.target.src = defaultImage;
-                        }}
-                      />
-                    </div>
-
-                    <div className="card-body d-flex flex-column justify-content-between">
-                      <h5 className="card-title text-capitalize fs-6 mb-3 text-start">
-                        <span className="text-secondary fs-6 small block d-block mb-1">
-                          ID: {pokemon.id}
-                        </span>
-
-                        {pokemon.pokemon_name}
-                      </h5>
-
-                      <Link
-                        to={`/pokemon/${pokemon.id}`}
-                        className="btn btn-outline-warning btn-sm w-100"
-                      >
-                        Ver Detalles
-                      </Link>
-                    </div>
+                      Ver Detalles
+                    </Link>
                   </div>
                 </div>
-              );
-            })
-          )}
+              </div>
+            );
+          })}
         </div>
       )}
     </div>

@@ -1,5 +1,6 @@
 import defaultImage from "../../assets/no-card-image.png";
 import { closeModalSafely } from "../utils.js";
+import { filterPokemons } from "../utils.js";
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:3000";
 
@@ -69,103 +70,140 @@ export const getActions = (store, dispatch) => {
       }, 3000);
     },
 
-    // === 👾 PETICIONES DE POKÉMON ===
+    //  👾 CARGA INICIAL DE HOME ===
     obtenerPokemons: async () => {
+      // Si ya hay datos cargados en Home, no repetimos la petición.
       if (store.api.list && store.api.list.length > 0) return;
 
+      let listaCartas;
+
+      // Primer bloque: obtiene el listado resumido de cartas SOLO para Home.
       try {
-        dispatch({ type: "API_LOADING" });
+        dispatch({ type: "API_LIST_LOADING" }); // Indica que comienza la carga del listado base.
         const response = await fetch(
           "https://api.tcgdex.net/v2/en/cards?pagination:page=1&pagination:itemsPerPage=24",
         );
 
-        if (!response.ok)
-          throw new Error("Error al obtener los pokémons de la API externa");
+        if (!response.ok) {
+          throw new Error(
+            `Error al obtener el listado de cartas: HTTP ${response.status}`,
+          );
+        }
+
         const data = await response.json();
 
-        // 🔥 Corrección: TCGdex a veces devuelve un objeto con paginación, no un Array directo
-        const listaCartas = Array.isArray(data) ? data : data.cards;
+        // TCGdex a veces devuelve array directo o un objeto con propiedad "cards".
+        listaCartas = Array.isArray(data) ? data : data.cards;
 
-        if (listaCartas && Array.isArray(listaCartas)) {
-          // El primer endpoint solo devuelve datos resumidos.
-          // Por eso pedimos el detalle completo de cada carta mediante su ID.
-          const datosFormateados = await Promise.all(
-            listaCartas.map(async (carta) => {
-              // Codificamos el ID antes de utilizarlo en la URL del detalle.
-              let idTexto = obtenerIdCodificado(carta.id);
-
-              // Esta petición proporciona HP, ataques, expansión, rareza y tipos.
-              const detalleResponse = await fetch(
-                `https://api.tcgdex.net/v2/en/cards/${idTexto}`,
-              );
-
-              if (!detalleResponse.ok) {
-                throw new Error(
-                  `No se pudo obtener el detalle de la carta ${carta.id}`,
-                );
-              }
-
-              const detalle = await detalleResponse.json();
-
-              /* 🔥 FORMATEO DEFENSIVO: Validamos la imagen usando 'defaultImage'
-              TCGdex estructura la imagen de la carta como string o dentro de un objeto */
-              const imagenFinal = detalle.image
-                ? `${detalle.image}/low.png`
-                : defaultImage;
-
-              // Guardamos los datos completos en la misma lista que utilizarán
-              // Home, Navbar, filtros, favoritos y Details.
-              return {
-                id: String(detalle.id || carta.id),
-                pokemon_name: detalle.name || carta.name,
-                image: imagenFinal,
-                set: detalle.set || {},
-                rarity: detalle.rarity || "",
-                types: detalle.types || [],
-                hp: detalle.hp || "",
-                illustrator: detalle.illustrator || "",
-                attacks: detalle.attacks || [],
-              };
-            }),
-          );
-
-          // Solo publicamos la lista cuando todos sus detalles están disponibles.
-          dispatch({ type: "API_LIST_SUCCESS", payload: datosFormateados });
-        } else {
+        if (!Array.isArray(listaCartas)) {
           throw new Error(
-            "La respuesta del servidor no tiene el formato esperado.",
+            "La respuesta del listado no tiene el formato esperado.",
           );
         }
       } catch (err) {
-        console.error("Error crítico al conectar con la API de TCGdex:", err);
+        console.error("Error al cargar el listado de cartas:", err);
         dispatch({ type: "API_ERROR", payload: err.message });
+        return;
+      }
+
+      // Publicamos solo una versión ligera para Home.
+      const cartasBasicas = listaCartas.map((carta) => ({
+        id: String(carta.id),
+        pokemon_name: carta.name,
+        image: carta.image ? `${carta.image}/low.png` : defaultImage,
+      }));
+
+      // Home guarda este array ligero en api.list.
+      dispatch({
+        type: "API_LIST_SUCCESS",
+        payload: cartasBasicas,
+      });
+    },
+
+    //  👾 BÚSQUEDA/FILTRO INDEPENDIENTE DE HOME ===
+    buscarCartasPorFiltro: async (filters = {}) => {
+      // Si no hay ningún filtro activo, devolvemos la lista base ya almacenada.
+      const hayFiltroActivo = Object.values(filters).some(
+        (valor) => valor !== undefined && valor !== null && valor !== "",
+      );
+
+      if (!hayFiltroActivo) {
+        dispatch({
+          type: "API_FILTERED_SUCCESS",
+          payload: [],
+        });
+
+        return [];
+      }
+
+      if (store.api.list && store.api.list.length > 0) {
+        const filtradas = filterPokemons(store.api.list, filters);
+
+        dispatch({
+          type: "API_FILTERED_SUCCESS",
+          payload: filtradas,
+        });
+
+        return filtradas;
+      }
+
+      // 2) Si no hay datos base, hacemos una petición puntual específica para buscar.
+      // Este fetch es independiente del de Home y no modifica api.list.
+      dispatch({ type: "API_FILTERED_LOADING" });
+
+      try {
+        const query = (filters.filter || "").trim();
+
+        // Si el campo de búsqueda está vacío, no hacemos la llamada.
+        if (!query) {
+          return [];
+        }
+
+        const response = await fetch(
+          `https://api.tcgdex.net/v2/en/cards?name=${encodeURIComponent(query)}`,
+        );
+
+        if (!response.ok) {
+          throw new Error(`Error al buscar cartas: HTTP ${response.status}`);
+        }
+
+        const data = await response.json();
+        const resultados = Array.isArray(data) ? data : data.cards || [];
+
+        // Mapeamos el resultado de la búsqueda a una forma compatible con el filtro local.
+        const cartasBusca = resultados.map((carta) => ({
+          id: String(carta.id),
+          pokemon_name: carta.name,
+          name: carta.name,
+          image: carta.image ? `${carta.image}/low.png` : defaultImage,
+          set: carta.set || {},
+          rarity: carta.rarity || "",
+          types: carta.types || [],
+          hp: carta.hp || "",
+          illustrator: carta.illustrator || "",
+          attacks: carta.attacks || [],
+        }));
+
+        // Aquí se usa filterPokemons de [src/Frontend/utils.js](src/Frontend/utils.js)
+        // como paso final de filtrado, sin tocar el flujo de Home.
+        const filtradas = filterPokemons(cartasBusca, filters);
+
+        dispatch({ type: "API_FILTERED_SUCCESS", payload: filtradas });
+
+        return filtradas;
+      } catch (err) {
+        console.error("Error al buscar cartas por filtro:", err);
+        dispatch({ type: "API_ERROR", payload: err.message });
+        return [];
       }
     },
 
-    // === 👾 PETICIONES DETALLE POKÉMON ===
+    //  👾 PETICIONES DETALLE POKÉMON ===
     obtenerDetallePokemon: async (id) => {
       try {
-        // Primero intentamos reutilizar el detalle completo cargado por Home.
-        // Así evitamos repetir una petición para una carta ya disponible.
-        const cartaGuardada = (store.api.list || []).find(
-          (pokemon) =>
-            String(pokemon.id) === String(id) &&
-            pokemon.set !== undefined &&
-            pokemon.types !== undefined &&
-            pokemon.attacks !== undefined,
-        );
-
-        if (cartaGuardada) {
-          // Details utiliza directamente la información completa del store.
-          dispatch({
-            type: "API_DETAIL_SUCCESS",
-            payload: cartaGuardada,
-          });
-          return;
-        }
-
-        // Si Home aún no terminó de cargar la carta, usamos el fetch individual.
-        dispatch({ type: "API_LOADING" });
+        // Home ya no guarda datos completos de cada carta.
+        // Por eso el detalle debe cargar siempre con un fetch puntual.
+        dispatch({ type: "API_DETAILS_LOADING" });
 
         // Detector de caracteres especiales PARA EL SEGUNDO POKEMON
         let idTexto = obtenerIdCodificado(id);
@@ -199,12 +237,13 @@ export const getActions = (store, dispatch) => {
         dispatch({ type: "API_ERROR", payload: err.message });
       }
     },
+
     // 🔥 Helper para limpiar el detalle al desmontar el componente
     limpiarDetallePokemon: () => {
       dispatch({ type: "API_DETAIL_SUCCESS", payload: null });
     },
 
-    // === ❤️ GESTIÓN DE FAVORITOS
+    //  ❤️ GESTIÓN DE FAVORITOS
     cargarFavoritosBackend: async (userId) => {
       // antes de pedir la lista del nuevo usuario, limpiamos el estado local
       dispatch({ type: "CLEAR_FAVORITES" });
