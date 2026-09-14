@@ -121,13 +121,11 @@ export const getActions = (store, dispatch) => {
     },
 
     //  👾 BÚSQUEDA/FILTRO INDEPENDIENTE DE HOME ===
-    buscarCartasPorFiltro: async (filters = {}) => {
-      // Si no hay ningún filtro activo, devolvemos la lista base ya almacenada.
-      const hayFiltroActivo = Object.values(filters).some(
-        (valor) => valor !== undefined && valor !== null && valor !== "",
-      );
+    buscarCartasPorFiltro: async (filtros = {}) => {
+      const filtro = String(filtros.inputText || "").trim();
 
-      if (!hayFiltroActivo) {
+      // Si el input está vacío, limpiamos el resultado superpuesto.
+      if (!filtro) {
         dispatch({
           type: "API_FILTERED_SUCCESS",
           payload: [],
@@ -136,45 +134,30 @@ export const getActions = (store, dispatch) => {
         return [];
       }
 
-      if (store.api.list && store.api.list.length > 0) {
-        const filtradas = filterPokemons(store.api.list, filters);
-
-        dispatch({
-          type: "API_FILTERED_SUCCESS",
-          payload: filtradas,
-        });
-
-        return filtradas;
-      }
-
-      // 2) Si no hay datos base, hacemos una petición puntual específica para buscar.
-      // Este fetch es independiente del de Home y no modifica api.list.
+      // Esta búsqueda es independiente del catálogo ligero de Home.
       dispatch({ type: "API_FILTERED_LOADING" });
 
       try {
-        const query = (filters.filter || "").trim();
-
-        // Si el campo de búsqueda está vacío, no hacemos la llamada.
-        if (!query) {
-          return [];
-        }
-
-        const response = await fetch(
-          `https://api.tcgdex.net/v2/en/cards?name=${encodeURIComponent(query)}`,
-        );
+        // No usamos store.api.list porque solo contiene datos resumidos.
+        // Tampoco usamos ?name= porque el filtro puede buscar por cualquier campo.
+        const response = await fetch("https://api.tcgdex.net/v2/en/cards");
 
         if (!response.ok) {
-          throw new Error(`Error al buscar cartas: HTTP ${response.status}`);
+          throw new Error(
+            `Error al obtener cartas para filtrar: HTTP ${response.status}`,
+          );
         }
 
         const data = await response.json();
-        const resultados = Array.isArray(data) ? data : data.cards || [];
 
-        // Mapeamos el resultado de la búsqueda a una forma compatible con el filtro local.
-        const cartasBusca = resultados.map((carta) => ({
+        // TCGdex puede devolver directamente un array o un objeto con "cards".
+        const cartasCompletas = Array.isArray(data) ? data : data.cards || [];
+
+        // Normalizamos los campos que filterPokemons necesita.
+        const cartasNormalizadas = cartasCompletas.map((carta) => ({
+          ...carta,
           id: String(carta.id),
           pokemon_name: carta.name,
-          name: carta.name,
           image: carta.image ? `${carta.image}/low.png` : defaultImage,
           set: carta.set || {},
           rarity: carta.rarity || "",
@@ -184,16 +167,26 @@ export const getActions = (store, dispatch) => {
           attacks: carta.attacks || [],
         }));
 
-        // Aquí se usa filterPokemons de [src/Frontend/utils.js](src/Frontend/utils.js)
-        // como paso final de filtrado, sin tocar el flujo de Home.
-        const filtradas = filterPokemons(cartasBusca, filters);
+        // filterPokemons(pokemons, filters = {})  aplica el filtro genérico sobre todos los campos:
+        // ID, nombre, tipo, HP, rareza, expansión, artista y ataques.
+        const filtradas = filterPokemons(cartasNormalizadas, {
+          inputText: filtro,
+        });
 
-        dispatch({ type: "API_FILTERED_SUCCESS", payload: filtradas });
+        dispatch({
+          type: "API_FILTERED_SUCCESS",
+          payload: filtradas,
+        });
 
         return filtradas;
       } catch (err) {
         console.error("Error al buscar cartas por filtro:", err);
-        dispatch({ type: "API_ERROR", payload: err.message });
+
+        dispatch({
+          type: "API_ERROR",
+          payload: err.message,
+        });
+
         return [];
       }
     },
