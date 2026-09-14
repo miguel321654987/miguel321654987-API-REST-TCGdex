@@ -49,7 +49,7 @@ export const Home = () => {
   return (
     <div className="container text-center mt-5 text-light">
       <h1 className="home-title fw-bold mb-4 animate-pulse">
-        ¡Bienvenido a la PokeApp TCG!
+        ¡Bienvenido a la PokeApp POKEMONWORLD!
       </h1>
 
       {/* Nuevo: muestra una carta superpuesta cuando hay coincidencia exacta */}

@@ -126,9 +126,9 @@ export const filterPokemons = (pokemons, filters = {}) => {
   // Comprueba el filtro general introducido desde el Navbar.
   // Puede coincidir con ID, nombre, tipo, HP, rareza, expansión o artista.
   const matchesGenericFilter = (pokemon) => {
-    if (!filters.filter || normalize(filters.filter) === "") return true;
+    if (!filters.inputText || normalize(filters.inputText) === "") return true;
 
-    const genericFilter = normalize(filters.filter);
+    const genericFilter = normalize(filters.inputText);
 
     const searchableValues = [
       pokemon.id,

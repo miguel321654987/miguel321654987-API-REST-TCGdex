@@ -10,8 +10,6 @@ export const initialStore = () => {
       detail: null, // Detalle de carta individual
       filteredLoading: false,
       filtered: [], // Resultado de filtros locales
-      searchLoading: false,
-      search: [], // Resultado de búsqueda puntual
       error: null,
     },
     favorites: {
@@ -88,17 +86,6 @@ export default function storeReducer(store, action = {}) {
         },
       };
 
-    // Indica que ha comenzado la carga de búsqueda puntual.
-    case "API_SEARCH_LOADING":
-      return {
-        ...store,
-        api: {
-          ...store.api,
-          searchLoading: true,
-          error: null,
-        },
-      };
-
     case "API_LIST_SUCCESS":
       return {
         ...store,
@@ -128,17 +115,6 @@ export default function storeReducer(store, action = {}) {
           ...store.api,
           filteredLoading: false,
           filtered: action.payload,
-          error: null,
-        },
-      };
-
-    case "API_SEARCH_SUCCESS":
-      return {
-        ...store,
-        api: {
-          ...store.api,
-          searchLoading: false,
-          search: action.payload,
           error: null,
         },
       };
