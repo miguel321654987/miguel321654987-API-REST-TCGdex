@@ -122,7 +122,6 @@ export const getActions = (store, dispatch) => {
     //  👾 BÚSQUEDA POR FILTROS ===
     filtrarCartas: async (filtrosAplicados = {}) => {
       // Sirve para hacer la petición real de cartas con los filtros ya elegidos.
-      // La idea es dejar clara la separación:
       // 1) cargar catalogos desde el BACKEND
       // 2) guardar filtros seleccionados en el store
       // 3) lanzar la búsqueda real con filtrarCartas()
@@ -139,12 +138,10 @@ export const getActions = (store, dispatch) => {
 
         // 2) Construimos la query de filtros
         //    En este paso solo se prepara la URL.
-        //    Los arrays completos de cada filtro ya vendrán del BACKEND
-        //    y estarán guardados en la base de datos.
+        //    Los arrays completos de cada filtro vendrán del BACKEND y estarán guardados en la db.
         const queryParams = new URLSearchParams();
 
-        // 3) Si hay tipos seleccionados, se convierten en:
-        //    types=eq:Fire|Water
+        // 3) Si hay tipos seleccionados, se convierten en:types=eq:Fire|Water
         if (
           Array.isArray(filtrosAplicados.types) &&
           filtrosAplicados.types.length > 0
@@ -152,8 +149,7 @@ export const getActions = (store, dispatch) => {
           queryParams.append("types", `eq:${filtrosAplicados.types.join("|")}`);
         }
 
-        // 4) Si hay raridades seleccionadas, se convierten en:
-        //    rarities=eq:Rare|Uncommon
+        // 4) Si hay raridades seleccionadas, se convierten en: rarities=eq:Rare|Uncommon
         if (
           Array.isArray(filtrosAplicados.rarities) &&
           filtrosAplicados.rarities.length > 0
@@ -164,8 +160,7 @@ export const getActions = (store, dispatch) => {
           );
         }
 
-        // 5) Si existe un valor mínimo de HP, se usa:
-        //    hp=gte:90
+        // 5) Si existe un valor mínimo de HP, se usa: hp=gte:90
         if (
           filtrosAplicados.hpMin !== "" &&
           filtrosAplicados.hpMin !== undefined
@@ -173,8 +168,7 @@ export const getActions = (store, dispatch) => {
           queryParams.append("hp", `gte:${filtrosAplicados.hpMin}`);
         }
 
-        // 6) Si existe un valor máximo de HP, se usa:
-        //    hp=lte:150
+        // 6) Si existe un valor máximo de HP, se usa: hp=lte:150
         if (
           filtrosAplicados.hpMax !== "" &&
           filtrosAplicados.hpMax !== undefined

@@ -19,10 +19,8 @@ export const initialStore = () => {
         categories: "",
         dexids: "",
         energytypes: "",
-        regulationmarks: "",
         stages: "",
         suffixes: "",
-        trainertypes: "",
         variants: "",
       },
       page: 1, // Página actual de resultados filtrados
