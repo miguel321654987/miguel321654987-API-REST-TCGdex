@@ -10,6 +10,24 @@ export const initialStore = () => {
       detail: null, // Detalle de carta individual
       filteredLoading: false,
       filtered: [], // Resultado de filtros locales
+      filters: {
+        types: "",
+        retreats: "",
+        rarities: "",
+        illustrators: "",
+        hps: "",
+        categories: "",
+        dexids: "",
+        energytypes: "",
+        regulationmarks: "",
+        stages: "",
+        suffixes: "",
+        trainertypes: "",
+        variants: "",
+      },
+      page: 1, // Página actual de resultados filtrados
+      itemsPerPage: 24,
+      totalPages: 1, // útil para desactivar “Siguiente”
       error: null,
     },
     favorites: {
@@ -63,6 +81,16 @@ export default function storeReducer(store, action = {}) {
           error: null,
         },
       };
+    case "API_LIST_SUCCESS":
+      return {
+        ...store,
+        api: {
+          ...store.api,
+          listLoading: false,
+          list: action.payload,
+          error: null,
+        },
+      };
 
     // Indica que ha comenzado la carga del detalle por ID.
     case "API_DETAILS_LOADING":
@@ -71,6 +99,16 @@ export default function storeReducer(store, action = {}) {
         api: {
           ...store.api,
           detailsLoading: true,
+          error: null,
+        },
+      };
+    case "API_DETAIL_SUCCESS":
+      return {
+        ...store,
+        api: {
+          ...store.api,
+          detailsLoading: false,
+          detail: action.payload,
           error: null,
         },
       };
@@ -85,29 +123,6 @@ export default function storeReducer(store, action = {}) {
           error: null,
         },
       };
-
-    case "API_LIST_SUCCESS":
-      return {
-        ...store,
-        api: {
-          ...store.api,
-          listLoading: false,
-          list: action.payload,
-          error: null,
-        },
-      };
-
-    case "API_DETAIL_SUCCESS":
-      return {
-        ...store,
-        api: {
-          ...store.api,
-          detailsLoading: false,
-          detail: action.payload,
-          error: null,
-        },
-      };
-
     case "API_FILTERED_SUCCESS":
       return {
         ...store,
@@ -115,39 +130,6 @@ export default function storeReducer(store, action = {}) {
           ...store.api,
           filteredLoading: false,
           filtered: action.payload,
-          error: null,
-        },
-      };
-
-    case "API_ERROR":
-      return {
-        ...store,
-        api: {
-          ...store.api,
-          listLoading: false,
-          detailsLoading: false,
-          filteredLoading: false,
-          searchLoading: false,
-          error: action.payload,
-        },
-      };
-
-    case "CLEAR_FAVORITES":
-      return {
-        ...store,
-        favorites: {
-          loading: false,
-          list: [],
-          error: null,
-        },
-      };
-
-    case "SET_FAVORITES":
-      return {
-        ...store,
-        favorites: {
-          loading: false,
-          list: action.payload,
           error: null,
         },
       };
@@ -161,7 +143,24 @@ export default function storeReducer(store, action = {}) {
           error: null,
         },
       };
-
+    case "SET_FAVORITES":
+      return {
+        ...store,
+        favorites: {
+          loading: false,
+          list: action.payload,
+          error: null,
+        },
+      };
+    case "CLEAR_FAVORITES":
+      return {
+        ...store,
+        favorites: {
+          loading: false,
+          list: [],
+          error: null,
+        },
+      };
     case "FAVORITES_ERROR":
       return {
         ...store,
@@ -180,13 +179,25 @@ export default function storeReducer(store, action = {}) {
           list: [...store.favorites.list, action.payload],
         },
       };
-
     case "REMOVE_FAVORITE_STORE":
       return {
         ...store,
         favorites: {
           ...store.favorites,
           list: store.favorites.list.filter((fav) => fav.id !== action.payload),
+        },
+      };
+
+    case "API_ERROR":
+      return {
+        ...store,
+        api: {
+          ...store.api,
+          listLoading: false,
+          detailsLoading: false,
+          filteredLoading: false,
+          searchLoading: false,
+          error: action.payload,
         },
       };
 
