@@ -119,6 +119,106 @@ export const getActions = (store, dispatch) => {
         payload: cartasBasicas,
       });
     },
+    //  👾 BÚSQUEDA POR FILTROS ===
+    filtrarCartas: async (filtrosAplicados = {}) => {
+      // Sirve para hacer la petición real de cartas con los filtros ya elegidos.
+      // La idea es dejar clara la separación:
+      // 1) cargar catalogos desde el BACKEND
+      // 2) guardar filtros seleccionados en el store
+      // 3) lanzar la búsqueda real con filtrarCartas()
+
+      dispatch({ type: "API_FILTERED_LOADING" });
+
+      try {
+        // 1) Definimos la página y el número de elementos por página
+        //    TCGdex usa los parámetros:
+        //    pagination:page
+        //    pagination:itemsPerPage
+        const page = Number(filtrosAplicados.page || 1);
+        const itemsPerPage = Number(filtrosAplicados.itemsPerPage || 24);
+
+        // 2) Construimos la query de filtros
+        //    En este paso solo se prepara la URL.
+        //    Los arrays completos de cada filtro ya vendrán del BACKEND
+        //    y estarán guardados en la base de datos.
+        const queryParams = new URLSearchParams();
+
+        // 3) Si hay tipos seleccionados, se convierten en:
+        //    types=eq:Fire|Water
+        if (
+          Array.isArray(filtrosAplicados.types) &&
+          filtrosAplicados.types.length > 0
+        ) {
+          queryParams.append("types", `eq:${filtrosAplicados.types.join("|")}`);
+        }
+
+        // 4) Si hay raridades seleccionadas, se convierten en:
+        //    rarities=eq:Rare|Uncommon
+        if (
+          Array.isArray(filtrosAplicados.rarities) &&
+          filtrosAplicados.rarities.length > 0
+        ) {
+          queryParams.append(
+            "rarities",
+            `eq:${filtrosAplicados.rarities.join("|")}`,
+          );
+        }
+
+        // 5) Si existe un valor mínimo de HP, se usa:
+        //    hp=gte:90
+        if (
+          filtrosAplicados.hpMin !== "" &&
+          filtrosAplicados.hpMin !== undefined
+        ) {
+          queryParams.append("hp", `gte:${filtrosAplicados.hpMin}`);
+        }
+
+        // 6) Si existe un valor máximo de HP, se usa:
+        //    hp=lte:150
+        if (
+          filtrosAplicados.hpMax !== "" &&
+          filtrosAplicados.hpMax !== undefined
+        ) {
+          queryParams.append("hp", `lte:${filtrosAplicados.hpMax}`);
+        }
+
+        // 7) Paginación
+        queryParams.append("pagination:page", String(page));
+        queryParams.append("pagination:itemsPerPage", String(itemsPerPage));
+
+        // 8) URL final
+        const url = `https://api.tcgdex.net/v2/en/cards?${queryParams.toString()}`;
+
+        // 9) Fetch real
+        const response = await fetch(url);
+
+        if (!response.ok) {
+          throw new Error(`Error al filtrar cartas: HTTP ${response.status}`);
+        }
+
+        // 10) TCGdex devuelve un array directo para /cards
+        const data = await response.json();
+        const cartas = Array.isArray(data) ? data : data.cards || [];
+
+        // 11) Guardo el resultado en la store
+        dispatch({
+          type: "API_FILTERED_SUCCESS",
+          payload: cartas,
+        });
+
+        return cartas;
+      } catch (error) {
+        // 12) Error controlado
+        console.error("Error en filtrarCartas():", error);
+
+        dispatch({
+          type: "API_ERROR",
+          payload: error.message,
+        });
+
+        return [];
+      }
+    },
 
     //  👾 BÚSQUEDA/FILTRO INDEPENDIENTE DE HOME ===
     buscarCartasPorFiltro: async (filtros = {}) => {
