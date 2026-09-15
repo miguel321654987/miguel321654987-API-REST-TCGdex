@@ -2,11 +2,19 @@ import { useState } from "react";
 import useGlobalReducer from "../hooks/useGlobalReducer.jsx";
 
 const initialFilters = {
-  inputText: "",
-  type: "",
-  rarity: "",
-  hpMin: "",
-  hpMax: "",
+  types: "",
+  retreats: "",
+  rarities: "",
+  illustrators: "",
+  hps: "",
+  categories: "",
+  dexids: "",
+  energytypes: "",
+  regulationmarks: "",
+  stages: "",
+  suffixes: "",
+  trainertypes: "",
+  variants: "",
 };
 
 export const Sidebar = () => {
