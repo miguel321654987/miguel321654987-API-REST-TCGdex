@@ -1,6 +1,8 @@
 import { useState } from "react";
 import useGlobalReducer from "../hooks/useGlobalReducer.jsx";
 
+// Estado local de las opciones elegidas por el usuario.
+// Cada filtro solo puede tener un valor seleccionado.
 const initialFilters = {
   types: "",
   retreats: "",
@@ -17,52 +19,97 @@ const initialFilters = {
 
 export const Sidebar = () => {
   const { store, actions } = useGlobalReducer();
+
+  // filters contiene únicamente las selecciones actuales del usuario.
   const [filters, setFilters] = useState(initialFilters);
 
-  // store.api.filters.types = ["Fire", "Water", "Grass"]
+  // filterOptions contiene los arrays completos cargados desde el backend.
+  // Cada array se utilizará para crear las opciones de su <select>.
   const filterOptions = store.api.filters;
 
-  const initialFilters = {
-    types: "",
-    retreats: "",
-    rarity: "",
-    illustrators: "",
-    hps: "",
-    categories: "",
-    dexids: "",
-    energytypes: "",
-    stages: "",
-    suffixes: "",
-    variants: "",
-  };
-
+  // Actualiza solamente el filtro cuyo <select> ha cambiado.
+  // Como cada <select> permite una sola opción, value siempre es un string.
   const handleChange = (event) => {
     const { name, value } = event.target;
 
-    setFilters((prev) => ({
-      ...prev,
+    setFilters((previousFilters) => ({
+      ...previousFilters,
       [name]: value,
     }));
   };
 
+  // Envía los filtros seleccionados a la acción que consulta TCGdex.
   const handleApply = (event) => {
     event.preventDefault();
 
-    // Enviamos únicamente los filtros seleccionados.
-    // La página comienza siempre en 1 al aplicar una nueva búsqueda.
     actions.filtrarCartas({
-      types: filters.type,
+      types: filters.types,
+      retreats: filters.retreats,
       rarity: filters.rarity,
-      hpMin: filters.hpMin,
-      hpMax: filters.hpMax,
+      illustrators: filters.illustrators,
+      hps: filters.hps,
+      categories: filters.categories,
+      dexids: filters.dexids,
+      energytypes: filters.energytypes,
+      stages: filters.stages,
+      suffixes: filters.suffixes,
+      variants: filters.variants,
+
+      // Una nueva combinación de filtros comienza en la primera página.
       page: 1,
       itemsPerPage: 24,
     });
   };
 
+  // Limpia las selecciones locales.
+  // No hace fetch: el usuario debe pulsar "Aplicar filtros".
   const handleClear = () => {
     setFilters(initialFilters);
-    actions.buscarCartasPorFiltro({ inputText: "" });
+  };
+
+  // Crea un <select> reutilizable para cada categoría de filtros.
+  //
+  // filterName:
+  // nombre del filtro en filters y en store.api.filters.
+  //
+  // label:
+  // texto visible para el usuario.
+  //
+  // emptyLabel:
+  // texto que representa la ausencia de filtro.
+  const renderFilterSelect = (filterName, label, emptyLabel) => {
+    const options = Array.isArray(filterOptions[filterName])
+      ? filterOptions[filterName]
+      : [];
+
+    return (
+      <div key={filterName}>
+        <label
+          htmlFor={`sidebar-${filterName}`}
+          className="form-label small text-secondary"
+        >
+          {label}
+        </label>
+
+        <select
+          id={`sidebar-${filterName}`}
+          className="form-select form-select-sm"
+          name={filterName}
+          value={filters[filterName]}
+          onChange={handleChange}
+        >
+          {/* String vacío significa que este filtro no está activo. */}
+          <option value="">{emptyLabel}</option>
+
+          {/* Cada opción del catálogo representa un único valor seleccionable. */}
+          {options.map((option) => (
+            <option key={option} value={option}>
+              {option}
+            </option>
+          ))}
+        </select>
+      </div>
+    );
   };
 
   return (
@@ -72,6 +119,7 @@ export const Sidebar = () => {
     >
       <div className="d-flex justify-content-between align-items-center mb-3">
         <h2 className="h5 text-warning mb-0">Filtros</h2>
+
         <button
           type="button"
           className="btn btn-link btn-sm text-light p-0"
@@ -82,108 +130,18 @@ export const Sidebar = () => {
       </div>
 
       <form onSubmit={handleApply} className="d-grid gap-3">
-        <div>
-          <label
-            htmlFor="sidebar-search"
-            className="form-label small text-secondary"
-          >
-            Buscar por nombre
-          </label>
-          <input
-            id="sidebar-search"
-            type="text"
-            className="form-control form-control-sm"
-            name="inputText"
-            value={filters.inputText}
-            onChange={handleChange}
-            placeholder="Pikachu, Charizard..."
-          />
-        </div>
-
-        <div>
-          <label
-            htmlFor="sidebar-type"
-            className="form-label small text-secondary"
-          >
-            Tipo
-          </label>
-          <select
-            id="sidebar-type"
-            className="form-select form-select-sm"
-            name="type"
-            value={filters.type}
-            onChange={handleChange}
-          >
-            <option value="">Todos</option>
-            <option value="Fire">Fire</option>
-            <option value="Water">Water</option>
-            <option value="Grass">Grass</option>
-            <option value="Psychic">Psychic</option>
-            <option value="Lightning">Lightning</option>
-            <option value="Fighting">Fighting</option>
-          </select>
-        </div>
-
-        <div>
-          <label
-            htmlFor="sidebar-rarity"
-            className="form-label small text-secondary"
-          >
-            Rareza
-          </label>
-          <select
-            id="sidebar-rarity"
-            className="form-select form-select-sm"
-            name="rarity"
-            value={filters.rarity}
-            onChange={handleChange}
-          >
-            <option value="">Todas</option>
-            <option value="Common">Common</option>
-            <option value="Uncommon">Uncommon</option>
-            <option value="Rare">Rare</option>
-            <option value="Ultra Rare">Ultra Rare</option>
-            <option value="Secret Rare">Secret Rare</option>
-          </select>
-        </div>
-
-        <div className="row g-2">
-          <div className="col-6">
-            <label
-              htmlFor="sidebar-hp-min"
-              className="form-label small text-secondary"
-            >
-              HP mín.
-            </label>
-            <input
-              id="sidebar-hp-min"
-              type="number"
-              className="form-control form-control-sm"
-              name="hpMin"
-              value={filters.hpMin}
-              onChange={handleChange}
-              min="0"
-            />
-          </div>
-
-          <div className="col-6">
-            <label
-              htmlFor="sidebar-hp-max"
-              className="form-label small text-secondary"
-            >
-              HP máx.
-            </label>
-            <input
-              id="sidebar-hp-max"
-              type="number"
-              className="form-control form-control-sm"
-              name="hpMax"
-              value={filters.hpMax}
-              onChange={handleChange}
-              min="0"
-            />
-          </div>
-        </div>
+        {/* Cada filtro permite seleccionar una única opción. */}
+        {renderFilterSelect("types", "Tipo", "Todos")}
+        {renderFilterSelect("retreats", "Coste de retirada", "Todos")}
+        {renderFilterSelect("rarity", "Rareza", "Todas")}
+        {renderFilterSelect("illustrators", "Ilustrador", "Todos")}
+        {renderFilterSelect("hps", "HP", "Todos")}
+        {renderFilterSelect("categories", "Categoría", "Todas")}
+        {renderFilterSelect("dexids", "Número de Pokédex", "Todos")}
+        {renderFilterSelect("energytypes", "Tipo de energía", "Todos")}
+        {renderFilterSelect("stages", "Etapa", "Todas")}
+        {renderFilterSelect("suffixes", "Sufijo", "Todos")}
+        {renderFilterSelect("variants", "Variante", "Todas")}
 
         <button type="submit" className="btn btn-warning btn-sm w-100 mt-2">
           Aplicar filtros
