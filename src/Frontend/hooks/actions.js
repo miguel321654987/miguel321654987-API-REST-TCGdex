@@ -146,18 +146,15 @@ export const getActions = (store, dispatch) => {
           Array.isArray(filtrosAplicados.types) &&
           filtrosAplicados.types.length > 0
         ) {
-          queryParams.append("types", `eq:${filtrosAplicados.types.join("|")}`);
+          queryParams.append("types", `eq:${filtrosAplicados.types}`);
         }
 
         // 4) Si hay raridades seleccionadas, se convierten en: rarities=eq:Rare|Uncommon
         if (
-          Array.isArray(filtrosAplicados.rarities) &&
-          filtrosAplicados.rarities.length > 0
+          Array.isArray(filtrosAplicados.rarity) &&
+          filtrosAplicados.rarity.length > 0
         ) {
-          queryParams.append(
-            "rarities",
-            `eq:${filtrosAplicados.rarities.join("|")}`,
-          );
+          queryParams.append("rarities", `eq:${filtrosAplicados.rarity}`);
         }
 
         // 5) Si existe un valor mínimo de HP, se usa: hp=gte:90
@@ -199,8 +196,6 @@ export const getActions = (store, dispatch) => {
           type: "API_FILTERED_SUCCESS",
           payload: cartas,
         });
-
-        return cartas;
       } catch (error) {
         // 12) Error controlado
         console.error("Error en filtrarCartas():", error);
