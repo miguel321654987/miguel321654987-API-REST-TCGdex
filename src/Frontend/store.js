@@ -13,7 +13,7 @@ export const initialStore = () => {
       filters: {
         types: "",
         retreats: "",
-        rarities: "",
+        rarity: "",
         illustrators: "",
         hps: "",
         categories: "",

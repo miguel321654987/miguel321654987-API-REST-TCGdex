@@ -4,22 +4,37 @@ import useGlobalReducer from "../hooks/useGlobalReducer.jsx";
 const initialFilters = {
   types: "",
   retreats: "",
-  rarities: "",
+  rarity: "",
   illustrators: "",
   hps: "",
   categories: "",
   dexids: "",
   energytypes: "",
-  regulationmarks: "",
   stages: "",
   suffixes: "",
-  trainertypes: "",
   variants: "",
 };
 
 export const Sidebar = () => {
-  const { actions } = useGlobalReducer();
+  const { store, actions } = useGlobalReducer();
   const [filters, setFilters] = useState(initialFilters);
+
+  // store.api.filters.types = ["Fire", "Water", "Grass"]
+  const filterOptions = store.api.filters;
+
+  const initialFilters = {
+    types: "",
+    retreats: "",
+    rarity: "",
+    illustrators: "",
+    hps: "",
+    categories: "",
+    dexids: "",
+    energytypes: "",
+    stages: "",
+    suffixes: "",
+    variants: "",
+  };
 
   const handleChange = (event) => {
     const { name, value } = event.target;
@@ -33,12 +48,15 @@ export const Sidebar = () => {
   const handleApply = (event) => {
     event.preventDefault();
 
-    actions.buscarCartasPorFiltro({
-      inputText: filters.inputText,
-      type: filters.type,
+    // Enviamos únicamente los filtros seleccionados.
+    // La página comienza siempre en 1 al aplicar una nueva búsqueda.
+    actions.filtrarCartas({
+      types: filters.type,
       rarity: filters.rarity,
       hpMin: filters.hpMin,
       hpMax: filters.hpMax,
+      page: 1,
+      itemsPerPage: 24,
     });
   };
 
