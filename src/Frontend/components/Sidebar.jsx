@@ -5,15 +5,15 @@ import useGlobalReducer from "../hooks/useGlobalReducer.jsx";
 // Cada filtro solo puede tener un valor seleccionado.
 const initialFilters = {
   types: "",
-  retreats: "",
+  retreat: "",
   rarity: "",
-  illustrators: "",
-  hps: "",
-  categories: "",
-  dexids: "",
-  energytypes: "",
-  stages: "",
-  suffixes: "",
+  illustrator: "",
+  hp: "",
+  category: "",
+  dexId: "",
+  energyType: "",
+  stage: "",
+  suffix: "",
   variants: "",
 };
 
@@ -25,7 +25,7 @@ export const Sidebar = () => {
 
   // filterOptions contiene los arrays completos cargados desde el backend.
   // Cada array se utilizará para crear las opciones de su <select>.
-  const filterOptions = store.api.filters;
+  const filterOptions = store?.api?.filters || {};
 
   // Actualiza solamente el filtro cuyo <select> ha cambiado.
   // Como cada <select> permite una sola opción, value siempre es un string.
@@ -43,18 +43,7 @@ export const Sidebar = () => {
     event.preventDefault();
 
     actions.filtrarCartas({
-      types: filters.types,
-      retreats: filters.retreats,
-      rarity: filters.rarity,
-      illustrators: filters.illustrators,
-      hps: filters.hps,
-      categories: filters.categories,
-      dexids: filters.dexids,
-      energytypes: filters.energytypes,
-      stages: filters.stages,
-      suffixes: filters.suffixes,
-      variants: filters.variants,
-
+      ...filters,
       // Una nueva combinación de filtros comienza en la primera página.
       page: 1,
       itemsPerPage: 24,
@@ -130,21 +119,25 @@ export const Sidebar = () => {
       </div>
 
       <form onSubmit={handleApply} className="d-grid gap-3">
-        {/* Cada filtro permite seleccionar una única opción. */}
+        {/* Cada filtro permite seleccionar una única opción con los nombres de la API. */}
         {renderFilterSelect("types", "Tipo", "Todos")}
-        {renderFilterSelect("retreats", "Coste de retirada", "Todos")}
+        {renderFilterSelect("retreat", "Coste de retirada", "Todos")}
         {renderFilterSelect("rarity", "Rareza", "Todas")}
-        {renderFilterSelect("illustrators", "Ilustrador", "Todos")}
-        {renderFilterSelect("hps", "HP", "Todos")}
-        {renderFilterSelect("categories", "Categoría", "Todas")}
-        {renderFilterSelect("dexids", "Número de Pokédex", "Todos")}
-        {renderFilterSelect("energytypes", "Tipo de energía", "Todos")}
-        {renderFilterSelect("stages", "Etapa", "Todas")}
-        {renderFilterSelect("suffixes", "Sufijo", "Todos")}
+        {renderFilterSelect("illustrator", "Ilustrador", "Todos")}
+        {renderFilterSelect("hp", "HP", "Todos")}
+        {renderFilterSelect("category", "Categoría", "Todas")}
+        {renderFilterSelect("dexId", "Número de Pokédex", "Todos")}
+        {renderFilterSelect("energyType", "Tipo de energía", "Todos")}
+        {renderFilterSelect("stage", "Etapa", "Todas")}
+        {renderFilterSelect("suffix", "Sufijo", "Todos")}
         {renderFilterSelect("variants", "Variante", "Todas")}
 
-        <button type="submit" className="btn btn-warning btn-sm w-100 mt-2">
-          Aplicar filtros
+        <button
+          type="submit"
+          className="btn btn-warning btn-sm w-100 mt-2"
+          disabled={store?.api?.filteredLoading}
+        >
+          {store?.api?.filteredLoading ? "Buscando..." : "Aplicar filtros"}
         </button>
       </form>
     </aside>
