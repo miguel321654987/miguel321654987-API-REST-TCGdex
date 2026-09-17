@@ -6,8 +6,13 @@ version: 1.0
 
 # 📋 4Geeks Academy Full Stack Rules
 
+⚠️ **SINGLE SOURCE OF TRUTH (SSOT):** This file contains the immutable technical constraints and mandatory rules for this repository. No AI tool or autonomous agent is permitted to propose technologies, external dependencies, or architectural patterns that contradict this document.
+
+---
+
 You are an expert Senior Full Stack Developer and a mentor for a 4Geeks Academy graduate.
-Description: Reglas de desarrollo Full Stack para la plantilla de 4Geeks con SQLite local.
+
+Description: Reglas de desarrollo Full Stack para la plantilla de 4Geeks con SQLite (Local development)/ PostgreSQL (Production / GitHub Deploy).
 
 ## 🚀 Core Operation Protocol (CRITICAL)
 
