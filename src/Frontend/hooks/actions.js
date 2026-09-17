@@ -119,7 +119,8 @@ export const getActions = (store, dispatch) => {
         payload: cartasBasicas,
       });
     },
-    //  👾 BÚSQUEDA POR FILTROS ===
+
+    //  👾 BÚSQUEDA POR FILTROS EN SIDEBAR ===
     filtrarCartas: async (filtrosAplicados = {}) => {
       // Sirve para hacer la petición real de cartas con los filtros ya elegidos.
       // 1) cargar catalogos desde el BACKEND
@@ -129,75 +130,64 @@ export const getActions = (store, dispatch) => {
       dispatch({ type: "API_FILTERED_LOADING" });
 
       try {
-        // 1) Definimos la página y el número de elementos por página
-        //    TCGdex usa los parámetros:
-        //    pagination:page
-        //    pagination:itemsPerPage
-        const page = Number(filtrosAplicados.page || 1);
-        const itemsPerPage = Number(filtrosAplicados.itemsPerPage || 24);
+        //Definimos la página y el número de elementos por página
+        //    TCGdex usa los parámetros: pagination:page y pagination:itemsPerPage
+        const {
+          page = 1,
+          itemsPerPage = 24,
+          variants,
+          ...demasFiltros
+        } = filtrosAplicados;
 
-        // 2) Construimos la query de filtros
-        //    En este paso solo se prepara la URL.
-        //    Los arrays completos de cada filtro vendrán del BACKEND y estarán guardados en la db.
+        // Construimos la query de filtros
+        // En este paso solo se prepara la URL.
+        // Los arrays completos de cada filtro vendrán del BACKEND y estarán guardados en la db.
         const queryParams = new URLSearchParams();
 
-        // 3) Si hay tipos seleccionados, se convierten en:types=eq:Fire|Water
+        // Procesamos dinámicamente los filtros cuyos nombres ya coinciden con la API
+        // Si hay tipos seleccionados, se convierten en:types=eq:Fire|Water
+
+        Object.entries(demasFiltros).forEach(([key, value]) => {
+          if (value && typeof value === "string" && value.trim() !== "") {
+            queryParams.append(key, `eq:${value.trim()}`);
+          }
+        });
+
+        // Caso especial para variants (en TCGdex se consulta como variants.<variant>=true)
         if (
-          Array.isArray(filtrosAplicados.types) &&
-          filtrosAplicados.types.length > 0
+          variants &&
+          typeof variants === "string" &&
+          variants.trim() !== ""
         ) {
-          queryParams.append("types", `eq:${filtrosAplicados.types}`);
+          queryParams.append(`variants.${variants.trim()}`, "true");
         }
 
-        // 4) Si hay raridades seleccionadas, se convierten en: rarities=eq:Rare|Uncommon
-        if (
-          Array.isArray(filtrosAplicados.rarity) &&
-          filtrosAplicados.rarity.length > 0
-        ) {
-          queryParams.append("rarities", `eq:${filtrosAplicados.rarity}`);
-        }
-
-        // 5) Si existe un valor mínimo de HP, se usa: hp=gte:90
-        if (
-          filtrosAplicados.hpMin !== "" &&
-          filtrosAplicados.hpMin !== undefined
-        ) {
-          queryParams.append("hp", `gte:${filtrosAplicados.hpMin}`);
-        }
-
-        // 6) Si existe un valor máximo de HP, se usa: hp=lte:150
-        if (
-          filtrosAplicados.hpMax !== "" &&
-          filtrosAplicados.hpMax !== undefined
-        ) {
-          queryParams.append("hp", `lte:${filtrosAplicados.hpMax}`);
-        }
-
-        // 7) Paginación
+        // Paginación requerida por TCGdex
         queryParams.append("pagination:page", String(page));
         queryParams.append("pagination:itemsPerPage", String(itemsPerPage));
 
-        // 8) URL final
+        // URL final
         const url = `https://api.tcgdex.net/v2/en/cards?${queryParams.toString()}`;
 
-        // 9) Fetch real
         const response = await fetch(url);
 
         if (!response.ok) {
           throw new Error(`Error al filtrar cartas: HTTP ${response.status}`);
         }
 
-        // 10) TCGdex devuelve un array directo para /cards
+        // TCGdex devuelve un array directo para /cards
         const data = await response.json();
         const cartas = Array.isArray(data) ? data : data.cards || [];
 
-        // 11) Guardo el resultado en la store
+        // Guarda el resultado en la store
         dispatch({
           type: "API_FILTERED_SUCCESS",
           payload: cartas,
         });
+
+        return cartas;
       } catch (error) {
-        // 12) Error controlado
+        // Error controlado
         console.error("Error en filtrarCartas():", error);
 
         dispatch({
