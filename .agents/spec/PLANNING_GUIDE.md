@@ -47,29 +47,32 @@ Before generating any planning response or proposing a solution, the AI MUST exe
 ================================================================================
 TRADUCCIÓN AL ESPAÑOL (SOLO PARA REFERENCIA HUMANA - COMPARTIMENTADA PARA LA IA)
 ================================================================================
-📋 Protocolo de la Fase de Planificación de la IA
+
+# 📋 Protocolo de la Fase de Planificación de la IA.
+
 Este bloque define el protocolo obligatorio que la IA debe seguir cada vez que el usuario inicia una fase de planificación (Modo Plan).
 
-🧠 Objetivos Centrales
+## 🧠 Objetivos Centrales
 
 - Analizar minuciosamente los requisitos técnicos antes de proponer una arquitectura.
 - Minimizar la fatiga de contexto y evitar bucles rotos o errores de lógica.
 - Diseñar implementaciones atómicas, paso a paso, alineadas con el stack del proyecto.
 
-🔄 Flujo de Trabajo de Planificación Obligatorio
+## 🔄 Flujo de Trabajo de Planificación Obligatorio
+
 Antes de generar cualquier respuesta de planificación o proponer una solución, la IA DEBE ejecutar los siguientes pasos en orden:
 
-Paso 1: Verificación del Contexto
+### Paso 1: Verificación del Contexto
 
 1.1. Leer ROADMAP.md para identificar la tarea activa actual y revisar lecciones o bloqueos pasados.
 1.2. Inspeccionar los archivos relevantes del código usando los proveedores de contexto (ej. app.py, models.py) para entender las dependencias.
 
-Paso 2: Diseño de la Arquitectura
+### Paso 2: Diseño de la Arquitectura
 
 2.1. Diseñar los cambios estructurales asegurando total compatibilidad con el stack técnico existente: - Backend: Python, Flask, SQLAlchemy ORM, SQLite (instance/example.db). - Frontend: React.js, Componentes Funcionales, Context API.
 2.2. Mantener la restricción estricta de idioma: todo el código, variables y archivos técnicos deben escribirse en inglés.
 
-Paso 3: Pasos de Acción Atómicos
+### Paso 3: Pasos de Acción Atómicos
 
 3.1. Desglosar la implementación en una secuencia estructurada de pequeños pasos verificables (por ejemplo, Paso 1, Paso 2, Paso 3).
 3.2. Cada paso debe estar lo suficientemente aislado para que, al pasar a Modo Act/Agent, el agente pueda verificar el éxito.
@@ -79,7 +82,7 @@ Paso 3: Pasos de Acción Atómicos
 3.6. Estructura de Entrada en el Roadmap: Las nuevas entradas deben seguir este orden exacto: Primero agrega el nuevo elemento al final de la sección en inglés, seguido inmediatamente por su duplicado traducido al español justo al final de la sección española (comentado). LAS ENTRADAS NO DEBEN ENTREMEZCLARSE; deben mantenerse agrupadas por bloque de idioma.
 3.7. El bloque de traducción DEBE terminar con comentarios de cierre (<!-- ... -->) para evitar cargar contexto pesado o distraer a la IA durante el procesamiento de tokens.
 
-💬 Formato de Salida
+## 💬 Formato de Salida
 
 - Presentar el plan final estrictamente en español para la revisión del usuario.
 - No intentar usar herramientas de escritura de archivos o ejecución de terminal durante esta fase.
