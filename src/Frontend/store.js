@@ -132,6 +132,19 @@ export default function storeReducer(store, action = {}) {
         },
       };
 
+    // Updates available filter options for the sidebar dropdowns
+    case "API_FILTERS_SUCCESS":
+      return {
+        ...store,
+        api: {
+          ...store.api,
+          filters: {
+            ...store.api.filters,
+            ...action.payload,
+          },
+        },
+      };
+
     case "FAVORITES_LOADING":
       return {
         ...store,

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import useGlobalReducer from "../hooks/useGlobalReducer.jsx";
 
 // Estado local de las opciones elegidas por el usuario.
@@ -19,6 +19,11 @@ const initialFilters = {
 
 export const Sidebar = () => {
   const { store, actions } = useGlobalReducer();
+
+  // Load filter catalog options when Sidebar mounts
+  useEffect(() => {
+    actions.cargarOpcionesFiltros();
+  }, []);
 
   // filters contiene únicamente las selecciones actuales del usuario.
   const [filters, setFilters] = useState(initialFilters);
