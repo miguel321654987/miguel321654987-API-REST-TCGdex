@@ -1,5 +1,6 @@
+import requests
 from flask import Blueprint, request, jsonify
-from Backend.models import db, Pokemon
+from Backend.models import db, Pokemon, FilterOption
 from sqlalchemy import select
 from Backend.utils import APIException
 
@@ -164,3 +165,96 @@ def update_pokemon(pokemon_id):
         db.session.rollback()
         raise APIException(
             f"Error interno al actualizar el Pokémon: {str(e)}", status_code=500)
+
+
+# === CATÁLOGOS DE FILTROS ===
+
+FILTER_ENDPOINTS = {
+    "types": "types",
+    "retreat": "retreats",
+    "rarity": "rarities",
+    "illustrator": "illustrators",
+    "hp": "hps",
+    "category": "categories",
+    "dexId": "dexids",
+    "energyType": "energytypes",
+    "stage": "stages",
+    "suffix": "suffixes",
+    "variants": "variants",
+}
+
+
+@pokemon_bp.route('/filters', methods=['GET'])
+def get_filters():
+    """Returns grouped filter options from database for frontend store.api.filters"""
+    try:
+        stmt = select(FilterOption)
+        results = db.session.execute(stmt).scalars().all()
+
+        # Initialize dictionary structure with empty arrays
+        grouped_filters = {key: [] for key in FILTER_ENDPOINTS.keys()}
+
+        # Group values by category
+        for option in results:
+            if option.category in grouped_filters:
+                grouped_filters[option.category].append(option.value)
+
+        return jsonify({
+            "message": "Filter options fetched successfully",
+            "results": grouped_filters
+        }), 200
+
+    except Exception as e:
+        raise APIException(
+            f"Error fetching filter options from DB: {str(e)}", status_code=500)
+
+
+@pokemon_bp.route('/filters/sync', methods=['POST'])
+def sync_filters():
+    """Syncs filter options from TCGdex API into local database filter_options table"""
+    try:
+        total_added = 0
+
+        for key, endpoint in FILTER_ENDPOINTS.items():
+            url = f"https://api.tcgdex.net/v2/en/{endpoint}"
+            response = requests.get(url, timeout=10)
+
+            if not response.ok:
+                continue
+
+            data = response.json()
+            if not isinstance(data, list):
+                continue
+
+            for item in data:
+                if item is None or str(item).strip() == "":
+                    continue
+
+                value_clean = str(item).strip()
+
+                # Check if this category-value pair already exists
+                stmt = select(FilterOption).where(
+                    FilterOption.category == key,
+                    FilterOption.value == value_clean
+                )
+                existing = db.session.execute(stmt).scalar_one_or_none()
+
+                if existing is None:
+                    new_option = FilterOption(
+                        category=key,
+                        value=value_clean
+                    )
+                    db.session.add(new_option)
+                    total_added += 1
+
+        db.session.commit()
+
+        return jsonify({
+            "message": "Filters synced successfully with database",
+            "total_new_added": total_added
+        }), 200
+
+    except Exception as e:
+        db.session.rollback()
+        raise APIException(
+            f"Error syncing filter options: {str(e)}", status_code=500)
