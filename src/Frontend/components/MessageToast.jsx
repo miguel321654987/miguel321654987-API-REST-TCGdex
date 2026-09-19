@@ -50,18 +50,18 @@ const MessageToast = () => {
     >
       <div className="flex justify-between items-center">
         <p className="font-bold text-sm">{message.msg}</p>
-        {/* Icono simple basado en el tipo */}
+        {/* Icono corregido con propiedades camelCase para React */}
         <svg
-          class="w-6 h-6"
+          className="w-6 h-6"
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
           xmlns="http://www.w3.org/2000/svg"
         >
           <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth="2"
             d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14V7c0-.55-.45-1-1-1h-9a2 2 0 00-2 2v6a2 2 0 002 2h5l1.405-1.405z"
           ></path>
         </svg>

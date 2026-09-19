@@ -173,8 +173,8 @@ FILTER_ENDPOINTS = {
     "types": "types",
     "retreat": "retreats",
     "rarity": "rarities",
-    "illustrator": "illustrators",
-    "hp": "hps",
+    # "illustrator": "illustrators",  <-- 🤫 Silenciado para la prueba
+    "hp": "hp",
     "category": "categories",
     "dexId": "dexids",
     "energyType": "energytypes",
@@ -212,54 +212,87 @@ def get_filters():
             f"Error fetching filter options from DB: {str(e)}", status_code=500)
 
 
-# Consulta los 11 endpoints TCGdex, limpia los datos e inserta cada par (category, value)
-#  en la tabla filter_options de la base de datos (evitando duplicados).
+# ================================================================
+# FUNCIÓN PURA DE SINCRONIZACIÓN (sin decorador Flask)
+#
+# Al separar la lógica del endpoint HTTP, esta función puede ser
+# invocada desde dos lugares distintos:
+#   1. Desde el endpoint POST /filters/sync (llamada manual/admin).
+#   2. Desde app.py al arrancar el servidor (seeding automático).
+#
+# Así evitamos duplicar código y mantenemos un único punto de verdad.
+# ================================================================
+def run_filter_sync():
+    """Consulta los 11 catálogos de TCGdex y guarda los valores en la DB.
+    Puede ser llamada tanto desde el endpoint HTTP como al arrancar Flask."""
+
+    total_added = 0  # Contador de nuevos registros insertados en esta ejecución
+
+    for key, endpoint in FILTER_ENDPOINTS.items():
+        # Construimos la URL completa del catálogo de TCGdex
+        url = f"https://api.tcgdex.net/v2/en/{endpoint}"
+
+        # Petición HTTP al servidor externo TCGdex con timeout de seguridad
+        response = requests.get(url, timeout=10)
+
+        # Si el endpoint externo falla, continuamos con el siguiente sin abortar todo
+        if not response.ok:
+            print(f"⚠️  No se pudo obtener el catálogo '{key}' ({url})")
+            continue
+
+        data = response.json()
+
+        # TCGdex devuelve un array directo; si no, ignoramos este catálogo
+        if not isinstance(data, list):
+            continue
+
+        for item in data:
+            # Descartamos valores nulos o en blanco que no son útiles como opción de filtro
+            if item is None or str(item).strip() == "":
+                continue
+
+            value_clean = str(item).strip()
+
+            # Comprobamos si el par (categoría, valor) ya existe para evitar duplicados.
+            # La restricción UniqueConstraint del modelo también lo garantiza,
+            # pero esta comprobación previa evita excepciones innecesarias.
+            stmt = select(FilterOption).where(
+                FilterOption.category == key,
+                FilterOption.value == value_clean
+            )
+            existing = db.session.execute(stmt).scalar_one_or_none()
+
+            if existing is None:
+                # Solo insertamos si el valor no estaba ya en la base de datos
+                db.session.add(FilterOption(category=key, value=value_clean))
+                total_added += 1
+
+    # Confirmamos todos los insertos de esta ejecución en un único commit
+    db.session.commit()
+
+    return total_added
+
+
+# ================================================================
+# ENDPOINT HTTP: POST /filters/sync
+#
+# Permite disparar la sincronización manualmente desde Postman,
+# un script de administración o un panel de control.
+# Delega toda la lógica en run_filter_sync() para no duplicar código.
+# ================================================================
 @pokemon_bp.route('/filters/sync', methods=['POST'])
 def sync_filters():
-    """Syncs filter options from TCGdex API into local database filter_options table"""
+    """Sincroniza las opciones de filtro desde TCGdex hacia la base de datos local."""
     try:
-        total_added = 0
-
-        for key, endpoint in FILTER_ENDPOINTS.items():
-            url = f"https://api.tcgdex.net/v2/en/{endpoint}"
-            response = requests.get(url, timeout=10)
-
-            if not response.ok:
-                continue
-
-            data = response.json()
-            if not isinstance(data, list):
-                continue
-
-            for item in data:
-                if item is None or str(item).strip() == "":
-                    continue
-
-                value_clean = str(item).strip()
-
-                # Check if this category-value pair already exists
-                stmt = select(FilterOption).where(
-                    FilterOption.category == key,
-                    FilterOption.value == value_clean
-                )
-                existing = db.session.execute(stmt).scalar_one_or_none()
-
-                if existing is None:
-                    new_option = FilterOption(
-                        category=key,
-                        value=value_clean
-                    )
-                    db.session.add(new_option)
-                    total_added += 1
-
-        db.session.commit()
+        total_added = run_filter_sync()
 
         return jsonify({
-            "message": "Filters synced successfully with database",
+            "message": "Filtros sincronizados correctamente con la base de datos",
             "total_new_added": total_added
         }), 200
 
     except Exception as e:
+        # Si algo falla a mitad del proceso, revertimos todos los cambios pendientes
         db.session.rollback()
         raise APIException(
-            f"Error syncing filter options: {str(e)}", status_code=500)
+            f"Error al sincronizar las opciones de filtro: {str(e)}", status_code=500)

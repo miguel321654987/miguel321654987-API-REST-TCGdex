@@ -8,10 +8,13 @@ from flask_cors import CORS
 from dotenv import load_dotenv
 from Backend.utils import APIException, generate_sitemap
 from Backend.admin import setup_admin
-from Backend.models import db
+from Backend.models import db, FilterOption
 from flask_jwt_extended import JWTManager
 from Backend.routes import api
 from Backend.extensions import bcrypt
+# Importamos la función pura de sincronización para el seeding automático al arrancar
+from Backend.blueprints.pokemon_bp import run_filter_sync
+from sqlalchemy import select
 
 load_dotenv()
 
@@ -46,6 +49,8 @@ else:
 
 MIGRATE = Migrate(app, db)
 db.init_app(app)
+
+
 CORS(app)
 setup_admin(app)
 
@@ -59,15 +64,54 @@ app.register_blueprint(api, url_prefix='/api')
 def handle_invalid_usage(error):
     return jsonify(error.to_dict()), error.status_code
 
-# generate sitemap with all your endpoints
 
+# generate sitemap with all your endpoints
 
 @app.route('/')
 def sitemap():
     return generate_sitemap(app)
 
 
-# this only runs if `$ python src/app.py` is executed
+# ==============================================================================
+# CONTROL DE ARRANQUE: SEEDING DE FILTROS Y APERTURA DE PUERTOS
+#
+# Esta condición 'if' es crucial:
+# - SI ejecutas '$ pipenv run start', evalúa como VERDADERO y corre todo el bloque.
+# - SI ejecutas '$ pipenv run migrate', evalúa como FALSO, ignorando el seeding
+#   y permitiendo que la migración termine al instante sin dar Timeout en la red.
+# ==============================================================================
 if __name__ == '__main__':
+
+    # --------------------------------------------------------------------------
+    # FASE 1: SEEDING AUTOMÁTICO DE DATOS (Solo al encender el servidor)
+    # --------------------------------------------------------------------------
+    # Creamos el contexto de la aplicación para poder interactuar de forma segura con la DB
+    with app.app_context():
+        # Consultamos un único registro para verificar si la tabla ya tiene información
+        stmt = select(FilterOption).limit(1)
+        primer_registro = db.session.execute(stmt).scalar_one_or_none()
+
+        # Si la tabla está completamente vacía, disparamos la descarga desde la API
+        if primer_registro is None:
+            print("⏳ Servidor iniciado. Detectada DB vacía.")
+            print("⏳ Seeding inicial: descargando catálogos de filtros desde TCGdex...")
+
+            # Llama a la función del backend para traer los filtros (ahora de forma segura)
+            total = run_filter_sync()
+
+            print(
+                f"✅ Seeding completado: {total} opciones de filtro guardadas en la DB.")
+        else:
+            # Si ya hay datos, evitamos peticiones HTTP innecesarias para acelerar el arranque
+            print("✅ Catálogos de filtros ya disponibles en la base de datos.")
+
+    # --------------------------------------------------------------------------
+    # FASE 2: LANZAMIENTO DEL SERVIDOR WEB FLASK
+    # --------------------------------------------------------------------------
+    # Leemos el puerto asignado en las variables de entorno (por defecto el 3000)
     PORT = int(os.environ.get('PORT', 3000))
+
+    print(f"🚀 Servidor Flask listo y escuchando en el puerto {PORT}...")
+
+    # Encendemos los sockets de Flask para empezar a recibir peticiones de usuarios o frontend
     app.run(host='0.0.0.0', port=PORT, debug=False)
