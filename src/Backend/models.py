@@ -1,5 +1,5 @@
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import String, Boolean, Integer, ForeignKey
+from sqlalchemy import String, Boolean, Integer, ForeignKey, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 db = SQLAlchemy()
@@ -62,4 +62,29 @@ class Pokemon(db.Model):
             "id": self.id,
             "pokemon_name": self.pokemon_name,
             "image": self.image,  # 🌟 La incluimos en la respuesta JSON
+        }
+
+
+# Modelo para almacenar las opciones de filtros para dropdown de Sidebar
+
+class FilterOption(db.Model):
+    __tablename__ = "filter_options"
+
+# Restricción de unicidad para evitar duplicados en la combinación de categoría y valor
+# Permite Sincronizaciones Infinitas sin Duplicar (Idempotencia)
+    __table_args__ = (
+        UniqueConstraint("category", "value", name="uq_filter_category_value"),
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    category: Mapped[str] = mapped_column(
+        String(50), nullable=False, index=True)
+    value: Mapped[str] = mapped_column(String(100), nullable=False)
+
+    def serialize(self):
+        """Serialize FilterOption instance"""
+        return {
+            "id": self.id,
+            "category": self.category,
+            "value": self.value,
         }
