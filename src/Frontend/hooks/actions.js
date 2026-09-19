@@ -70,6 +70,32 @@ export const getActions = (store, dispatch) => {
       }, 3000);
     },
 
+    //  👾 Catálogo de filtros para el Sidebar
+    // Realiza un único fetch a tu propio backend (${BACKEND_URL}/api/pok/filters):
+    cargarOpcionesFiltros: async () => {
+      // Previene que se repita el fetch si ya hay filtros cargados en la store.
+      if (store.api.filters?.types?.length > 0) return;
+
+      try {
+        const response = await fetch(`${BACKEND_URL}/api/pok/filters`);
+        if (!response.ok) {
+          throw new Error(
+            `Error fetching backend filter options: HTTP ${response.status}`,
+          );
+        }
+
+        const data = await response.json();
+        const filterPayload = data.results || data;
+
+        dispatch({
+          type: "API_FILTERS_SUCCESS",
+          payload: filterPayload,
+        });
+      } catch (error) {
+        console.error("Error in cargarOpcionesFiltros:", error);
+      }
+    },
+
     //  👾 CARGA INICIAL DE HOME ===
     obtenerPokemons: async () => {
       // Si ya hay datos cargados en Home, no repetimos la petición.

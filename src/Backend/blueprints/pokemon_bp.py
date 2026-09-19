@@ -183,6 +183,9 @@ FILTER_ENDPOINTS = {
     "variants": "variants",
 }
 
+# Consulta la db local y devuelve un objeto JSON agrupado
+#  con los arrays ordenados por categoría para el Frontend.
+
 
 @pokemon_bp.route('/filters', methods=['GET'])
 def get_filters():
@@ -209,6 +212,8 @@ def get_filters():
             f"Error fetching filter options from DB: {str(e)}", status_code=500)
 
 
+# Consulta los 11 endpoints TCGdex, limpia los datos e inserta cada par (category, value)
+#  en la tabla filter_options de la base de datos (evitando duplicados).
 @pokemon_bp.route('/filters/sync', methods=['POST'])
 def sync_filters():
     """Syncs filter options from TCGdex API into local database filter_options table"""
