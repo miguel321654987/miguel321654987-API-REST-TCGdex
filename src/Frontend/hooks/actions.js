@@ -4,6 +4,20 @@ import { filterPokemons } from "../utils.js";
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:3000";
 
+// Mapa de traducción: Claves del Store local → Parámetros aceptados por TCGdex /cards
+const TCG_FILTER_MAP = {
+  types: "types",
+  retreat: "retreat",
+  rarity: "rarity",
+  illustrator: "illustrator",
+  hp: "hp",
+  category: "category",
+  dexId: "dexIds", // TCGdex usa 'dexIds' en plural para filtrado
+  energyType: "energyType",
+  stage: "stage",
+  suffix: "suffix",
+};
+
 export const getActions = (store, dispatch) => {
   // 🔥 Helper interno para incluir el Token JWT de forma automática y segura
   const getAuthHeaders = () => {
@@ -173,9 +187,11 @@ export const getActions = (store, dispatch) => {
         // Procesamos dinámicamente los filtros cuyos nombres ya coinciden con la API
         // Si hay tipos seleccionados, se convierten en:types=eq:Fire|Water
 
+        // Traducción de claves del store a parámetros aceptados por TCGdex
         Object.entries(demasFiltros).forEach(([key, value]) => {
           if (value && typeof value === "string" && value.trim() !== "") {
-            queryParams.append(key, `eq:${value.trim()}`);
+            const apiParam = TCG_FILTER_MAP[key] || key;
+            queryParams.append(apiParam, `eq:${value.trim()}`);
           }
         });
 
@@ -203,17 +219,23 @@ export const getActions = (store, dispatch) => {
 
         // TCGdex devuelve un array directo para /cards
         const data = await response.json();
-        const cartas = Array.isArray(data) ? data : data.cards || [];
+        const cartasRaw = Array.isArray(data) ? data : data.cards || [];
 
-        // Guarda el resultado en la store
+        // Normalización de datos para que la app lea 'pokemon_name' e 'image' de forma consistente
+        const cartasNormalizadas = cartasRaw.map((carta) => ({
+          ...carta,
+          id: String(carta.id),
+          pokemon_name: carta.name,
+          image: carta.image ? `${carta.image}/low.png` : defaultImage,
+        }));
+
         dispatch({
           type: "API_FILTERED_SUCCESS",
-          payload: cartas,
+          payload: cartasNormalizadas,
         });
 
-        return cartas;
+        return cartasNormalizadas;
       } catch (error) {
-        // Error controlado
         console.error("Error en filtrarCartas():", error);
 
         dispatch({
