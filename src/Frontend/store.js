@@ -17,10 +17,11 @@ export const initialStore = () => {
         illustrator: [],
         hp: [],
         category: [],
-        dexId: [],
         energyType: [],
+        regulationmarks: [],
         stage: [],
         suffix: [],
+        trainertypes: [],
         variants: [],
       },
       page: 1, // Página actual de resultados filtrados

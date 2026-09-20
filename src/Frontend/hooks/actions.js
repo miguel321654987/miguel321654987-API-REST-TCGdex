@@ -7,15 +7,18 @@ const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:3000";
 // Mapa de traducción: Claves del Store local → Parámetros aceptados por TCGdex /cards
 const TCG_FILTER_MAP = {
   types: "types",
-  retreat: "retreat",
-  rarity: "rarity",
-  illustrator: "illustrator",
+  retreat: "retreats",
+  rarity: "rarities",
+  illustrator: "illustrators",
   hp: "hp",
-  category: "category",
-  dexId: "dexIds", // TCGdex usa 'dexIds' en plural para filtrado
-  energyType: "energyType",
-  stage: "stage",
-  suffix: "suffix",
+  category: "categories",
+  energyType: "energy-types",
+  regulationmarks: "regulation-marks",
+
+  stage: "stages",
+  suffix: "suffixes",
+  variants: "variants",
+  trainertypes: "trainer-types",
 };
 
 export const getActions = (store, dispatch) => {

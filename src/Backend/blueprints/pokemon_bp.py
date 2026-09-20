@@ -173,13 +173,14 @@ FILTER_ENDPOINTS = {
     "types": "types",
     "retreat": "retreats",
     "rarity": "rarities",
-    # "illustrator": "illustrators",  <-- 🤫 Silenciado para la prueba
+    "illustrator": "illustrators",
     "hp": "hp",
     "category": "categories",
-    "dexId": "dexids",
-    "energyType": "energytypes",
+    "energyType": "energy-types",
+    "regulationmarks": "regulation-marks",
     "stage": "stages",
     "suffix": "suffixes",
+    "trainertypes": "trainer-types",
     "variants": "variants",
 }
 
