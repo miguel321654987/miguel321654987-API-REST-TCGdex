@@ -1,7 +1,6 @@
 ---
 name: Base-System-Message
 description: Base System Message
-alwaysApply: true
 ---
 
 # Base System Message
