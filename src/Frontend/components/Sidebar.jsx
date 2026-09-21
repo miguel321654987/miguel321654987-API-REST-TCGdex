@@ -10,10 +10,11 @@ const initialFilters = {
   illustrator: "",
   hp: "",
   category: "",
-  dexId: "",
   energyType: "",
+  regulationmarks: "",
   stage: "",
   suffix: "",
+  trainertypes: "",
   variants: "",
 };
 
