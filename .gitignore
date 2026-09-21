@@ -9,3 +9,7 @@ package.json
 !.vscode
 __pycache__/
 node_modules/
+
+.continue/config.json
+.continue/config.yaml
+.continue/config/

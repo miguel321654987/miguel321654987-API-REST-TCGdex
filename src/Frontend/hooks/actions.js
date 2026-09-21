@@ -14,7 +14,6 @@ const TCG_FILTER_MAP = {
   category: "categories",
   energyType: "energy-types",
   regulationmarks: "regulation-marks",
-
   stage: "stages",
   suffix: "suffixes",
   variants: "variants",
