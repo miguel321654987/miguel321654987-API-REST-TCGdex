@@ -1,6 +1,7 @@
 ---
 name: compactar-contexto
 description: Realiza un análisis de contenido estático sobre la Conversation completa para generar directamente el prompt de inicio de una nueva Conversation limpia.
+invokable: true
 ---
 
 # Skill: Análisis de Contenido de Contexto (Pase de Testigo)

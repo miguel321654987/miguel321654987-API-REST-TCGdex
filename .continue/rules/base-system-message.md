@@ -1,7 +1,7 @@
 ---
 name: Base-System-Message
 description: Base System Message
-activation: always_on
+alwaysApply: true
 ---
 
 # Base System Message
