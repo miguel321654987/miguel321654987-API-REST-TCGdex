@@ -1,7 +1,6 @@
 ---
 name: buenas-practicas-codigo-limpio
 description: Fuerza al agente a generar código legible usando Clean Code, control estructurado de excepciones y modularidad simple (KISS).
-activation: always_on
 ---
 
 # Rule: Buenas Prácticas de Desarrollo y Código Limpio

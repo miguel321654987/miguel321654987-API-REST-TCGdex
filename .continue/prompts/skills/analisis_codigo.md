@@ -1,6 +1,7 @@
 ---
 name: analisis-código
 description: Realiza una auditoría de calidad de código sobre archivos específicos del workspace para identificar malas prácticas y sugerir refactorizaciones. Úsalo cuando el usuario pida revisar código, deuda técnica o buenas prácticas.
+invokable: true
 ---
 
 # Skill: Análisis de Deuda Técnica y Buenas Prácticas
