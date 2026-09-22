@@ -7,27 +7,40 @@ import { openModalSafely } from "../utils.js";
 export const Home = () => {
   const { store, actions } = useGlobalReducer();
 
-  // Extraemos las variables directamente desde store global
+  // 1) El catálogo base de Home sigue siendo store.api.list.
+  // 2) El resultado de un filtro del Sidebar se guarda en store.api.filtered.
+  // 3) La clave es decidir qué lista renderizar en cada momento.
   const { list: pokemons, filtered, listLoading, error } = store.api;
 
   const { list: favoritos } = store.favorites;
 
-  // Obtenemos desde la URL el valor escrito en el Navbar
+  // Leemos el filtro de búsqueda del Navbar, si existe.
   const [searchParams] = useSearchParams();
-
-  // Lee el filtro que el Navbar escribió en la URL
   const searchFilter = searchParams.get("filter") || "";
 
-  // El resultado ya fue calculado por buscarCartasPorFiltro
-  // y almacenado en store.api.filtered.
+  // Si hay filtros aplicados en el Sidebar, la vista debe mostrar filtered.
+  // Si no hay filtros activos, debe volver al listado inicial de Home.
+  const hasActiveFilters =
+    Array.isArray(filtered) && filtered.length > 0 && filtered !== pokemons;
+
+  // Variable final que decide qué listado mostrar en pantalla.
+  // Esto es lo que corrige el bug: no se sigue renderizando el listado base
+  // cuando ya hay un resultado de filtros en store.api.filtered.
+  const cartasAMostrar =
+    hasActiveFilters && Array.isArray(filtered) && filtered.length > 0
+      ? filtered
+      : pokemons;
+
+  // Si además hay un filtro textual del Navbar, mostramos la primera coincidencia
+  // como "overlay" encima del listado.
   const pokemonEncontrado =
     searchFilter.trim() && filtered.length > 0 ? filtered[0] : null;
 
-  // Reutilizamos la lista de favoritos del store
+  // Reutilizamos la lista de favoritos del store para pintar el corazón.
   const esFavorito = (pokemonId) =>
     favoritos.some((card) => String(card.id) === String(pokemonId));
 
-  // Usamos las acciones ya creadas en actions.js
+  // Manejamos el toggle de favoritos.
   const handleToggleFavorite = async (pokemon) => {
     if (!store.token || !store.user?.id) {
       openModalSafely("loginModal");
@@ -42,6 +55,7 @@ export const Home = () => {
     await actions.añadirFavoritoBackend(store.user.id, pokemon);
   };
 
+  // Carga inicial del catálogo base de Home.
   useEffect(() => {
     actions.obtenerPokemons();
   }, []);
@@ -52,7 +66,8 @@ export const Home = () => {
         ¡Bienvenido a la PokeApp POKEMONWORLD!
       </h1>
 
-      {/* Nuevo: muestra una carta superpuesta cuando hay coincidencia exacta */}
+      {/* Si hay una coincidencia exacta en la búsqueda del Navbar, la mostramos
+          destacada en una tarjeta superior. */}
       {pokemonEncontrado && (
         <div className="search-result-overlay">
           <div className="card bg-dark text-light border-warning shadow-lg">
@@ -89,22 +104,23 @@ export const Home = () => {
         <p className="text-danger mt-4">
           Hubo un error al cargar las cartas: {error}
         </p>
-      ) : !pokemons || pokemons.length === 0 ? (
+      ) : !cartasAMostrar || cartasAMostrar.length === 0 ? (
         <div className="row g-4 justify-content-center mt-2">
           <p className="text-danger">
             No se recibieron datos desde el servidor de TCGdex.
           </p>
         </div>
       ) : (
-        // Se mantienen todas las cartas visibles en pantalla
+        // Aquí se renderiza la lista final según el estado del filtro.
+        // Si hay filtros, muestra filtered; si no, muestra el catálogo base.
         <div className="row g-4 justify-content-center mt-2">
-          {pokemons.map((pokemon) => {
+          {cartasAMostrar.map((pokemon) => {
             const favoritoActual = esFavorito(pokemon.id);
 
             return (
               <div key={pokemon.id} className="col-6 col-md-4 col-lg-3">
                 <div className="card bg-dark text-light border-secondary h-100 shadow-sm position-relative">
-                  {/* Botón con aspecto de corazón para añadir o borrar favoritos */}
+                  {/* Botón de favoritos */}
                   <button
                     type="button"
                     className={`btn btn-sm position-absolute top-0 end-0 m-2 rounded-circle ${
@@ -118,7 +134,6 @@ export const Home = () => {
                         ? "Quitar de favoritos"
                         : "Añadir a favoritos"
                     }
-                    // tooltip opcional para accesibilidad y UX
                     title={
                       favoritoActual
                         ? "Quitar de favoritos"
