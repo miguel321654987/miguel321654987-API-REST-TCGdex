@@ -1,8 +1,8 @@
 import requests
 from flask import Blueprint, request, jsonify
-from Backend.models import db, Pokemon, FilterOption
+from ..models import db, Pokemon, FilterOption
 from sqlalchemy import select
-from Backend.utils import APIException
+from ..utils import APIException
 
 # 1. Definimos el Blueprint
 pokemon_bp = Blueprint('Pokemon', __name__)
@@ -184,6 +184,14 @@ FILTER_ENDPOINTS = {
     "variants": "variants",
 }
 
+# Timeouts personalizados por clave (segundos).
+# variants es lento (~14 s); el resto responde en < 4 s.
+FILTER_TIMEOUTS = {
+    "variants": 20,
+    # Valor por defecto para el resto
+    "default": 10,
+}
+
 # Consulta la db local y devuelve un objeto JSON agrupado
 #  con los arrays ordenados por categoría para el Frontend.
 
@@ -233,8 +241,11 @@ def run_filter_sync():
         # Construimos la URL completa del catálogo de TCGdex
         url = f"https://api.tcgdex.net/v2/en/{endpoint}"
 
+        # Timeout personalizado por catálogo (variants es lento ~14s)
+        timeout = FILTER_TIMEOUTS.get(key, FILTER_TIMEOUTS["default"])
+
         # Petición HTTP al servidor externo TCGdex con timeout de seguridad
-        response = requests.get(url, timeout=10)
+        response = requests.get(url, timeout=timeout)
 
         # Si el endpoint externo falla, continuamos con el siguiente sin abortar todo
         if not response.ok:
