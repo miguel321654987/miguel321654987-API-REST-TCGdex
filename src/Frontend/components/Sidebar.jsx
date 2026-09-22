@@ -63,15 +63,9 @@ export const Sidebar = () => {
   };
 
   // Crea un <select> reutilizable para cada categoría de filtros.
-  //
-  // filterName:
-  // nombre del filtro en filters y en store.api.filters.
-  //
-  // label:
-  // texto visible para el usuario.
-  //
-  // emptyLabel:
-  // texto que representa la ausencia de filtro.
+  // filterName:nombre del filtro en filters y en store.api.filters.
+  // label:texto visible para el usuario.
+  // emptyLabel:texto que representa la ausencia de filtro.
   const renderFilterSelect = (filterName, label, emptyLabel) => {
     const options = Array.isArray(filterOptions[filterName])
       ? filterOptions[filterName]
@@ -132,10 +126,11 @@ export const Sidebar = () => {
         {renderFilterSelect("illustrator", "Ilustrador", "Todos")}
         {renderFilterSelect("hp", "HP", "Todos")}
         {renderFilterSelect("category", "Categoría", "Todas")}
-        {renderFilterSelect("dexId", "Número de Pokédex", "Todos")}
         {renderFilterSelect("energyType", "Tipo de energía", "Todos")}
+        {renderFilterSelect("regulationmarks", "Marca de regulación", "Todas")}
         {renderFilterSelect("stage", "Etapa", "Todas")}
         {renderFilterSelect("suffix", "Sufijo", "Todos")}
+        {renderFilterSelect("trainertypes", "Tipo de entrenador", "Todos")}
         {renderFilterSelect("variants", "Variante", "Todas")}
 
         <button
