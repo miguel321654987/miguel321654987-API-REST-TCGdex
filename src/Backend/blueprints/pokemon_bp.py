@@ -1,11 +1,46 @@
+
 import requests
 from flask import Blueprint, request, jsonify
 from ..models import db, Pokemon, FilterOption
 from sqlalchemy import select
 from ..utils import APIException
 
-# 1. Definimos el Blueprint
 pokemon_bp = Blueprint('Pokemon', __name__)
+
+
+@pokemon_bp.route('/cards', methods=['GET'])
+def get_cards():
+    """Proxy backend para consultar cartas filtradas desde TCGdex."""
+    try:
+        tcgdex_url = "https://api.tcgdex.net/v2/en/cards"
+
+        params = {
+            key: values[-1]
+            for key, values in request.args.to_dict(flat=False).items()
+            if values
+        }
+
+        response = requests.get(
+            tcgdex_url,
+            params=params,
+            timeout=20
+        )
+
+        if not response.ok:
+            raise APIException(
+                f"TCGdex respondió con HTTP {response.status_code}",
+                status_code=response.status_code
+            )
+
+        data = response.json()
+
+        return jsonify(data), 200
+
+    except requests.RequestException as error:
+        raise APIException(
+            f"Error de conexión con TCGdex: {str(error)}",
+            status_code=503
+        )
 
 
 @pokemon_bp.route('/pokemon/<string:pokemon_id>', methods=['GET'])
