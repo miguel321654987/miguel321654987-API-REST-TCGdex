@@ -164,16 +164,9 @@ export const getActions = (store, dispatch) => {
 
     //  👾 BÚSQUEDA POR FILTROS EN SIDEBAR ===
     filtrarCartas: async (filtrosAplicados = {}) => {
-      // Sirve para hacer la petición real de cartas con los filtros ya elegidos.
-      // 1) cargar catalogos desde el BACKEND
-      // 2) guardar filtros seleccionados en el store
-      // 3) lanzar la búsqueda real con filtrarCartas()
-
       dispatch({ type: "API_FILTERED_LOADING" });
 
       try {
-        //Definimos la página y el número de elementos por página
-        //    TCGdex usa los parámetros: pagination:page y pagination:itemsPerPage
         const {
           page = 1,
           itemsPerPage = 24,
@@ -181,49 +174,37 @@ export const getActions = (store, dispatch) => {
           ...demasFiltros
         } = filtrosAplicados;
 
-        // Construimos la query de filtros
-        // En este paso solo se prepara la URL.
-        // Los arrays completos de cada filtro vendrán del BACKEND y estarán guardados en la db.
-        const queryParams = new URLSearchParams();
+        const query = new URLSearchParams();
 
-        // Procesamos dinámicamente los filtros cuyos nombres ya coinciden con la API
-        // Si hay tipos seleccionados, se convierten en:types=eq:Fire|Water
-
-        // Traducción de claves del store a parámetros aceptados por TCGdex
         Object.entries(demasFiltros).forEach(([key, value]) => {
           if (value && typeof value === "string" && value.trim() !== "") {
             const apiParam = TCG_FILTER_MAP[key] || key;
-            queryParams.append(apiParam, `eq:${value.trim()}`);
+            query.append(apiParam, `eq:${value.trim()}`);
           }
         });
 
-        // Caso especial para variants (en TCGdex se consulta como variants.<variant>=true)
         if (
           variants &&
           typeof variants === "string" &&
           variants.trim() !== ""
         ) {
-          queryParams.append(`variants.${variants.trim()}`, "true");
+          query.append(`variants.${variants.trim()}`, "true");
         }
 
-        // Paginación requerida por TCGdex
-        queryParams.append("pagination:page", String(page));
-        queryParams.append("pagination:itemsPerPage", String(itemsPerPage));
+        query.append("pagination:page", String(page));
+        query.append("pagination:itemsPerPage", String(itemsPerPage));
 
-        // URL final
-        const url = `https://api.tcgdex.net/v2/en/cards?${queryParams.toString()}`;
-
-        const response = await fetch(url);
+        const response = await fetch(
+          `${BACKEND_URL}/api/pok/cards?${query.toString()}`,
+        );
 
         if (!response.ok) {
           throw new Error(`Error al filtrar cartas: HTTP ${response.status}`);
         }
 
-        // TCGdex devuelve un array directo para /cards
         const data = await response.json();
         const cartasRaw = Array.isArray(data) ? data : data.cards || [];
 
-        // Normalización de datos para que la app lea 'pokemon_name' e 'image' de forma consistente
         const cartasNormalizadas = cartasRaw.map((carta) => ({
           ...carta,
           id: String(carta.id),
