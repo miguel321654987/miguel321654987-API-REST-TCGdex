@@ -7,17 +7,17 @@ const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:3000";
 // Mapa de traducción: Claves del Store local → Parámetros aceptados por TCGdex /cards
 const TCG_FILTER_MAP = {
   types: "types",
-  retreat: "retreats",
-  rarity: "rarities",
-  illustrator: "illustrators",
+  retreat: "retreat",
+  rarity: "rarity",
+  illustrator: "illustrator",
   hp: "hp",
-  category: "categories",
-  energyType: "energy-types",
-  regulationmarks: "regulation-marks",
-  stage: "stages",
-  suffix: "suffixes",
+  category: "category",
+  energyType: "energyType",
+  regulationmarks: "regulationmarks",
+  stage: "stage",
+  suffix: "suffix",
   variants: "variants",
-  trainertypes: "trainer-types",
+  trainertypes: "trainertypes",
 };
 
 export const getActions = (store, dispatch) => {
@@ -87,13 +87,13 @@ export const getActions = (store, dispatch) => {
     },
 
     //  👾 Catálogo de filtros para el Sidebar
-    // Realiza un único fetch a tu propio backend (${BACKEND_URL}/api/pok/filters):
+    // Realiza un único fetch a tu propio backend (${BACKEND_URL}/api/pok/filter-options)
     cargarOpcionesFiltros: async () => {
       // Previene que se repita el fetch si ya hay filtros cargados en la store.
       if (store.api.filters?.types?.length > 0) return;
 
       try {
-        const response = await fetch(`${BACKEND_URL}/api/pok/filters`);
+        const response = await fetch(`${BACKEND_URL}/api/pok/filter-options`);
         if (!response.ok) {
           throw new Error(
             `Error fetching backend filter options: HTTP ${response.status}`,
@@ -178,8 +178,11 @@ export const getActions = (store, dispatch) => {
 
         Object.entries(demasFiltros).forEach(([key, value]) => {
           if (value && typeof value === "string" && value.trim() !== "") {
+            // 💡 Buscamos la traducción en tu tabla intermedia. Si no existe, usa la llave original.
             const apiParam = TCG_FILTER_MAP[key] || key;
-            query.append(apiParam, `eq:${value.trim()}`);
+
+            // Enviamos el valor puro y limpio hacia Flask
+            query.append(apiParam, value.trim());
           }
         });
 
@@ -194,8 +197,9 @@ export const getActions = (store, dispatch) => {
         query.append("pagination:page", String(page));
         query.append("pagination:itemsPerPage", String(itemsPerPage));
 
+        // Llamada al Backend para obtener cartas filtradas según los parámetros construidos.
         const response = await fetch(
-          `${BACKEND_URL}/api/pok/cards?${query.toString()}`,
+          `${BACKEND_URL}/api/pok/filters?${query.toString()}`,
         );
 
         if (!response.ok) {

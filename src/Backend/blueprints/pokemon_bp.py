@@ -1,4 +1,5 @@
 
+from flask import request, jsonify
 import requests
 from flask import Blueprint, request, jsonify
 from ..models import db, Pokemon, FilterOption
@@ -8,39 +9,73 @@ from ..utils import APIException
 pokemon_bp = Blueprint('Pokemon', __name__)
 
 
-@pokemon_bp.route('/cards', methods=['GET'])
-def get_cards():
-    """Proxy backend para consultar cartas filtradas desde TCGdex."""
+@pokemon_bp.route('/filters', methods=['GET'])
+def get_filtered_cards():
+    """Proxy directo hacia el endpoint multifiltro avanzado de TCGdex."""
+    filtros_frontend = request.args
+
+    # Diccionario donde montaremos los Query Params exactos para TCGdex
+    query_params = {}
+
+    for llave, valor in filtros_frontend.items():
+        if not valor or valor in ["Todos", "Todas", "none", "None", ""]:
+            continue
+
+        # 1. Conservamos los parámetros de paginación exactamente igual
+        if "pagination:" in llave:
+            query_params[llave] = valor
+            continue
+
+        # 2. Manejo especial para filtros numéricos como HP (ej: gte:90)
+        if llave == "hp":
+            # Si el frontend ya manda el prefijo lo respetamos, si no, añadimos gte: por defecto
+            query_params["hp"] = valor if ":" in str(valor) else f"gte:{valor}"
+            continue
+
+        # 3. Manejo de variantes visuales (ej: variants.normal=true)
+        if "variants." in llave:
+            query_params[llave] = valor
+            continue
+
+        # 4. Filtros estándar de categoría (types, rarity, illustrator, etc.)
+        # Añadimos el prefijo 'eq:' que exige el endpoint /cards de TCGdex
+        if ":" in str(valor):
+            query_params[llave] = valor
+        else:
+            query_params[llave] = f"eq:{str(valor).strip()}"
+
     try:
-        tcgdex_url = "https://api.tcgdex.net/v2/en/cards"
+        # 💡 CONEXIÓN PERFECTA: Apuntamos al endpoint global /cards con los params estructurados
+        url_tcgdex = "https://api.tcgdex.net/v2/en/cards"
 
-        params = {
-            key: values[-1]
-            for key, values in request.args.to_dict(flat=False).items()
-            if values
-        }
+        # requests se encarga de formatear la URL con los símbolos & y ? automáticamente
+        response = requests.get(url_tcgdex, params=query_params, timeout=10)
 
-        response = requests.get(
-            tcgdex_url,
-            params=params,
-            timeout=20
-        )
+        if response.status_code == 200:
+            data = response.json()
 
-        if not response.ok:
-            raise APIException(
-                f"TCGdex respondió con HTTP {response.status_code}",
-                status_code=response.status_code
-            )
+            # El endpoint /cards de TCGdex devuelve directamente un array de objetos o un JSON estructurado
+            if isinstance(data, list):
+                cartas_limpias = data
+            elif isinstance(data, dict) and "cards" in data:
+                cartas_limpias = data["cards"]
+            elif isinstance(data, dict) and "results" in data:
+                cartas_limpias = data["results"]
+            else:
+                cartas_limpias = []
 
-        data = response.json()
+            print(
+                f"✅ Multifiltro TCGdex Exitoso. URL procesada: {response.url} -> Encontradas {len(cartas_limpias)} cartas.")
+            return jsonify(cartas_limpias), 200
 
-        return jsonify(data), 200
+        else:
+            print(
+                f"⚠️ TCGdex respondió con error {response.status_code} para la URL: {response.url}")
+            return jsonify([]), 200
 
-    except requests.RequestException as error:
-        raise APIException(
-            f"Error de conexión con TCGdex: {str(error)}",
-            status_code=503
-        )
+    except requests.exceptions.RequestException as e:
+        print(f"❌ Error de conexión en proxy TCGdex: {e}")
+        return jsonify({"error": "Error al conectar con el servidor externo"}), 502
 
 
 @pokemon_bp.route('/pokemon/<string:pokemon_id>', methods=['GET'])
@@ -231,7 +266,10 @@ FILTER_TIMEOUTS = {
 #  con los arrays ordenados por categoría para el Frontend.
 
 
-@pokemon_bp.route('/filters', methods=['GET'])
+# CAMBIO DIDÁCTICO: Renombramos la ruta para evitar colisión con
+# get_filtered_cards() que usa '/filters' para buscar cartas.
+# El Frontend ahora llama a '/filter-options' para obtener catálogos.
+@pokemon_bp.route('/filter-options', methods=['GET'])
 def get_filters():
     """Returns grouped filter options from database for frontend store.api.filters"""
     try:
@@ -268,9 +306,15 @@ def get_filters():
 # ================================================================
 def run_filter_sync():
     """Consulta los 11 catálogos de TCGdex y guarda los valores en la DB.
-    Puede ser llamada tanto desde el endpoint HTTP como al arrancar Flask."""
+    Puede ser llamada tanto desde el endpoint HTTP como al arrancar Flask.
 
-    total_added = 0  # Contador de nuevos registros insertados en esta ejecución
+    DIDÁCTICO: Cada categoría tiene su propio try/except y commit.
+    Si una petición falla (Timeout/ConnectionError), NO se pierde lo
+    ya insertado de las categorías anteriores. El commit por categoría
+    garantiza progreso parcial y rollback localizado.
+    """
+
+    total_added = 0  # Contador global de nuevos registros insertados
 
     for key, endpoint in FILTER_ENDPOINTS.items():
         # Construimos la URL completa del catálogo de TCGdex
@@ -279,43 +323,88 @@ def run_filter_sync():
         # Timeout personalizado por catálogo (variants es lento ~14s)
         timeout = FILTER_TIMEOUTS.get(key, FILTER_TIMEOUTS["default"])
 
-        # Petición HTTP al servidor externo TCGdex con timeout de seguridad
-        response = requests.get(url, timeout=timeout)
+        try:
+            # DIDÁCTICO: Petición HTTP con timeout explícito.
+            # Si falla por red (Timeout, ConnectionError, etc.),
+            # el except de abajo lo captura sin romper el bucle.
+            response = requests.get(url, timeout=timeout)
 
-        # Si el endpoint externo falla, continuamos con el siguiente sin abortar todo
-        if not response.ok:
-            print(f"⚠️  No se pudo obtener el catálogo '{key}' ({url})")
-            continue
-
-        data = response.json()
-
-        # TCGdex devuelve un array directo; si no, ignoramos este catálogo
-        if not isinstance(data, list):
-            continue
-
-        for item in data:
-            # Descartamos valores nulos o en blanco que no son útiles como opción de filtro
-            if item is None or str(item).strip() == "":
+            # Si el endpoint externo devuelve código de error HTTP,
+            # continuamos con el siguiente catálogo sin abortar todo.
+            if not response.ok:
+                print(
+                    f"⚠️  No se pudo obtener el catálogo '{key}' ({url}) - HTTP {response.status_code}")
                 continue
 
-            value_clean = str(item).strip()
+            data = response.json()
 
-            # Comprobamos si el par (categoría, valor) ya existe para evitar duplicados.
+            # TCGdex devuelve un array directo; si no, ignoramos este catálogo.
+            if not isinstance(data, list):
+                print(f"⚠️  Catálogo '{key}' no devolvió un array. Omitido.")
+                continue
+
+            # DIDÁCTICO: Insertamos los valores válidos dentro del try,
+            # así un error de DB (duplicate, constraint) no aborta la categoría.
+            category_added = 0
+            for item in data:
+                # Descartamos valores nulos o en blanco que no son útiles como opción de filtro
+                if item is None or str(item).strip() == "":
+                    continue
+
+                value_clean = str(item).strip()
+
+# Comprobamos si el par (categoría, valor) ya existe para evitar duplicados.
             # La restricción UniqueConstraint del modelo también lo garantiza,
             # pero esta comprobación previa evita excepciones innecesarias.
-            stmt = select(FilterOption).where(
-                FilterOption.category == key,
-                FilterOption.value == value_clean
-            )
-            existing = db.session.execute(stmt).scalar_one_or_none()
+                stmt = select(FilterOption).where(
+                    FilterOption.category == key,
+                    FilterOption.value == value_clean
+                )
+                existing = db.session.execute(stmt).scalar_one_or_none()
 
-            if existing is None:
-                # Solo insertamos si el valor no estaba ya en la base de datos
-                db.session.add(FilterOption(category=key, value=value_clean))
-                total_added += 1
+                if existing is None:
+                    db.session.add(FilterOption(
+                        category=key, value=value_clean))
+                    total_added += 1
+                    category_added += 1
 
-    # Confirmamos todos los insertos de esta ejecución en un único commit
-    db.session.commit()
+            # DIDÁCTICO: COMMIT POR CATEGORÍA → si 'variants' falla,
+            # los tipos, rarezas, etc. ya están guardados. Esto es clave
+            # para que filter_options nunca quede vacío tras un fallo parcial.
+            if category_added > 0:
+                db.session.commit()
+                print(
+                    f"✅ Catálogo '{key}': {category_added} opciones insertadas.")
+            else:
+                # Ningún dato nuevo para esta categoría; hacemos commit
+                # para mantener la sesión limpia (evita conflictos de sesión).
+                db.session.commit()
+
+        except requests.exceptions.RequestException as e:
+            # DIDÁCTICO: Captura Timeout, ConnectionError, ReadTimeout, etc.
+            # Hacemos rollback SOLO de esta categoría y continuamos.
+            # No se pierde el progreso de las categorías anteriores.
+            print(f"❌ Error de red en catálogo '{key}' ({url}): {e}")
+            try:
+                db.session.rollback()
+            except Exception:
+                pass  # Si rollback también falla, ignoramos
+
+        except Exception as e:
+            # DIDÁCTICO: Captura cualquier otro error inesperado (DB, etc.)
+            print(f"❌ Error inesperado en catálogo '{key}': {e}")
+            try:
+                db.session.rollback()
+            except Exception:
+                pass
+
+    # DIDÁCTICO: Commit final como garantía de consistencia.
+    # En la práctica, cada categoría ya ha hecho su propio commit,
+    # pero este asegura que cualquier cambio pendiente se materialice.
+    try:
+        db.session.commit()
+    except Exception:
+        pass
 
     return total_added
 
