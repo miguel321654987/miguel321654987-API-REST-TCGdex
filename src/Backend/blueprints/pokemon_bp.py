@@ -9,52 +9,67 @@ from ..utils import APIException
 pokemon_bp = Blueprint('Pokemon', __name__)
 
 
+# Timeouts personalizados por clave (segundos).
+# variants es lento (~14 s); el resto responde en < 4 s.
+FILTER_TIMEOUTS = {
+    "variants": 20,
+    # Valor por defecto para el resto
+    "default": 10,
+}
+
+
 @pokemon_bp.route('/filters', methods=['GET'])
 def get_filtered_cards():
     """Proxy directo hacia el endpoint multifiltro avanzado de TCGdex."""
     filtros_frontend = request.args
-
     # Diccionario donde montaremos los Query Params exactos para TCGdex
     query_params = {}
-
+    # 💡 COMENTARIO DIDÁCTICO:
+    # Ya no usamos FILTER_ENDPOINTS porque corrompe los query params hacia el plural.
+    # En su lugar, si el front envía llaves que TCGdex necesita en camelCase, las mapeamos.
+    # Todo lo que no esté en este mini-mapa (rarity, types, hp, category) se enviará tal cual.
+    MAPA_QUERY_CARDS = {
+        "trainertypes": "trainerType",
+        "regulationmarks": "regulationMark",
+        "energyType": "energyType"  # Aseguramos camelCase por si acaso
+    }
     for llave, valor in filtros_frontend.items():
         if not valor or valor in ["Todos", "Todas", "none", "None", ""]:
             continue
-
+        # Buscamos si la llave necesita un ajuste ortográfico para el endpoint /cards.
+        # Si no está (ej: "rarity"), se mantiene como "rarity".
+        llave_api = MAPA_QUERY_CARDS.get(llave, llave)
         # 1. Conservamos los parámetros de paginación exactamente igual
         if "pagination:" in llave:
-            query_params[llave] = valor
+            query_params[llave_api] = valor
             continue
-
         # 2. Manejo especial para filtros numéricos como HP (ej: gte:90)
-        if llave == "hp":
-            # Si el frontend ya manda el prefijo lo respetamos, si no, añadimos gte: por defecto
+        if llave_api == "hp":
             query_params["hp"] = valor if ":" in str(valor) else f"gte:{valor}"
             continue
-
         # 3. Manejo de variantes visuales (ej: variants.normal=true)
         if "variants." in llave:
-            query_params[llave] = valor
+            query_params[llave_api] = valor
             continue
-
-        # 4. Filtros estándar de categoría (types, rarity, illustrator, etc.)
-        # Añadimos el prefijo 'eq:' que exige el endpoint /cards de TCGdex
+        # 4. Filtros estándar (rarity, types, category, etc.)
         if ":" in str(valor):
-            query_params[llave] = valor
+            query_params[llave_api] = valor
         else:
-            query_params[llave] = f"eq:{str(valor).strip()}"
-
+            query_params[llave_api] = f"eq:{str(valor).strip()}"
     try:
-        # 💡 CONEXIÓN PERFECTA: Apuntamos al endpoint global /cards con los params estructurados
         url_tcgdex = "https://api.tcgdex.net/v2/en/cards"
 
-        # requests se encarga de formatear la URL con los símbolos & y ? automáticamente
+        # 💡 COMENTARIO DIDÁCTICO - MAGIA DE REQUESTS:
+        # Al pasar el diccionario `query_params` a la función requests.get(),
+        # Python transforma automáticamente esto:
+        # {"types": "eq:Fire", "rarity": "eq:Rare", "hp": "gte:90"}
+        # En la sintaxis de filtrado mixto para la URL:
+        # ?types=eq:Fire&rarity=eq:Rare&hp=gte:90
         response = requests.get(url_tcgdex, params=query_params, timeout=10)
 
         if response.status_code == 200:
             data = response.json()
 
-            # El endpoint /cards de TCGdex devuelve directamente un array de objetos o un JSON estructurado
             if isinstance(data, list):
                 cartas_limpias = data
             elif isinstance(data, dict) and "cards" in data:
@@ -236,8 +251,8 @@ def update_pokemon(pokemon_id):
         raise APIException(
             f"Error interno al actualizar el Pokémon: {str(e)}", status_code=500)
 
-
 # === CATÁLOGOS DE FILTROS ===
+
 
 FILTER_ENDPOINTS = {
     "types": "types",
@@ -252,14 +267,6 @@ FILTER_ENDPOINTS = {
     "suffix": "suffixes",
     "trainertypes": "trainer-types",
     "variants": "variants",
-}
-
-# Timeouts personalizados por clave (segundos).
-# variants es lento (~14 s); el resto responde en < 4 s.
-FILTER_TIMEOUTS = {
-    "variants": 20,
-    # Valor por defecto para el resto
-    "default": 10,
 }
 
 # Consulta la db local y devuelve un objeto JSON agrupado
