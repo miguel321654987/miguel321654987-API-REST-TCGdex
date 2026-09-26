@@ -8,7 +8,7 @@ invokable: true
 
 ## Descripción
 
-Esta habilidad permite al agente analizar un fragmento de código (frontend, backend o fullstack) y explicarlo paso a paso con un enfoque pedagógico orientado a perfiles junior. La explicación incluye desglose secuencial, comentarios dentro del propio código y aclaración de conceptos clave.
+Esta skill permite al agente analizar un fragmento de código (frontend, backend o fullstack) y explicarlo paso a paso con un enfoque pedagógico orientado a perfiles junior. La explicación incluye desglose secuencial, comentarios dentro del propio código y aclaración de conceptos clave.
 
 ## Activadores (Triggers)
 

@@ -10,8 +10,14 @@ export const Home = () => {
   // 1) El catálogo base de Home sigue siendo store.api.list.
   // 2) El resultado de un filtro del Sidebar se guarda en store.api.filtered.
   // 3) La clave es decidir qué lista renderizar en cada momento.
-  const { list: pokemons, filtered, listLoading, error } = store.api;
-
+  const {
+    list: pokemons,
+    filtered,
+    search,
+    searchLoading,
+    listLoading,
+    error,
+  } = store.api;
   const { list: favoritos } = store.favorites;
 
   // Leemos el filtro de búsqueda del Navbar, si existe.
@@ -24,17 +30,27 @@ export const Home = () => {
     Array.isArray(filtered) && filtered.length > 0 && filtered !== pokemons;
 
   // Variable final que decide qué listado mostrar en pantalla.
-  // Esto es lo que corrige el bug: no se sigue renderizando el listado base
-  // cuando ya hay un resultado de filtros en store.api.filtered.
+  /* Esto es lo que corrige el bug: no se sigue renderizando el listado base
+  cuando ya hay un resultado de filtros en store.api.filtered.*/
   const cartasAMostrar =
     hasActiveFilters && Array.isArray(filtered) && filtered.length > 0
       ? filtered
       : pokemons;
 
-  // Si además hay un filtro textual del Navbar, mostramos la primera coincidencia
-  // como "overlay" encima del listado.
+  /* Si hay un filtro textual del Navbar, mostramos la primera coincidencia
+  como "overlay" encima del listado.*/
   const pokemonEncontrado =
-    searchFilter.trim() && filtered.length > 0 ? filtered[0] : null;
+    searchFilter.trim() && Array.isArray(search) && search.length > 0
+      ? search[0]
+      : null;
+
+  // Si la búsqueda está cargando pero no hay resultados aún...
+  const searchMessage =
+    searchFilter.trim() && searchLoading
+      ? "Buscando..."
+      : searchFilter.trim() && Array.isArray(search) && search.length === 0
+        ? "No se encontraron coincidencias."
+        : null;
 
   // Reutilizamos la lista de favoritos del store para pintar el corazón.
   const esFavorito = (pokemonId) =>
@@ -67,7 +83,7 @@ export const Home = () => {
       </h1>
 
       {/* Si hay una coincidencia exacta en la búsqueda del Navbar, la mostramos
-          destacada en una tarjeta superior. */}
+          destacada en una card superpuesta. */}
       {pokemonEncontrado && (
         <div className="search-result-overlay">
           <div className="card bg-dark text-light border-warning shadow-lg">
@@ -94,7 +110,13 @@ export const Home = () => {
           </div>
         </div>
       )}
-
+      {/* Si searchMessage tiene contenido (es truthy), se renderiza el bloque <div>.
+      Si está vacío o es null, no se muestra nada */}
+      {searchMessage && (
+        <div className="mt-4">
+          <p className="text-warning">{searchMessage}</p>
+        </div>
+      )}
       {listLoading ? (
         <div className="mt-4">
           <p className="text-warning">Conectando con el servidor...</p>

@@ -9,7 +9,7 @@ export const initialStore = () => {
       detailsLoading: false,
       detail: null, // Detalle de carta individual
       searchLoading: false, // Búsqueda por parámetro filtrado
-      search: [], // Resultado de la búsqueda por parámetro
+      search: [], // Resultado de la búsqueda por parámetro en Navbar
       filteredLoading: false,
       filtered: [], // Resultado de filtros locales
       filters: {
