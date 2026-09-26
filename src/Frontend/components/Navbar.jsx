@@ -16,7 +16,7 @@ export const Navbar = () => {
   const handleFilter = (event) => {
     const filterValue = event.target.value;
 
-    actions.buscarCartasPorFiltro({ filter: filterValue });
+    actions.buscarCartasPorFiltro({ inputText: filterValue });
 
     // Conserva el valor escrito en la URL para que Home pueda leerlo.
     navigate(filterValue ? `/?filter=${encodeURIComponent(filterValue)}` : "/");

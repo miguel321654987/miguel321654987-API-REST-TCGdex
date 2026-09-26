@@ -8,9 +8,12 @@ export const initialStore = () => {
       list: [], // Catálogo base de Home
       detailsLoading: false,
       detail: null, // Detalle de carta individual
+      searchLoading: false, // Búsqueda por parámetro filtrado
+      search: [], // Resultado de la búsqueda por parámetro
       filteredLoading: false,
       filtered: [], // Resultado de filtros locales
       filters: {
+        // Valores iniciales de filtros locales (Sidebar)
         types: [],
         retreat: [],
         rarity: [],
@@ -112,6 +115,41 @@ export default function storeReducer(store, action = {}) {
         },
       };
 
+    // Indica que ha comenzado la búsqueda desde el Navbar.
+    case "API_SEARCH_LOADING":
+      return {
+        ...store,
+        api: {
+          ...store.api,
+          searchLoading: true,
+          error: null,
+        },
+      };
+
+    // Almacena los resultados de búsqueda del Navbar.
+    case "API_SEARCH_SUCCESS":
+      return {
+        ...store,
+        api: {
+          ...store.api,
+          searchLoading: false,
+          search: action.payload,
+          error: null,
+        },
+      };
+
+    // Limpia los resultados de búsqueda (cuando el input se vacía).
+    case "API_SEARCH_CLEAR":
+      return {
+        ...store,
+        api: {
+          ...store.api,
+          searchLoading: false,
+          search: [],
+          error: null,
+        },
+      };
+
     // Indica que ha comenzado la carga de filtros locales.
     case "API_FILTERED_LOADING":
       return {
@@ -133,7 +171,7 @@ export default function storeReducer(store, action = {}) {
         },
       };
 
-    // Updates available filter options for the sidebar dropdowns
+    // Indica que se han cargado los valores iniciales de filtros locales.
     case "API_FILTERS_SUCCESS":
       return {
         ...store,
@@ -173,15 +211,6 @@ export default function storeReducer(store, action = {}) {
           error: null,
         },
       };
-    case "FAVORITES_ERROR":
-      return {
-        ...store,
-        favorites: {
-          ...store.favorites,
-          loading: false,
-          error: action.payload,
-        },
-      };
 
     case "ADD_FAVORITE_STORE":
       return {
@@ -197,6 +226,16 @@ export default function storeReducer(store, action = {}) {
         favorites: {
           ...store.favorites,
           list: store.favorites.list.filter((fav) => fav.id !== action.payload),
+        },
+      };
+
+    case "FAVORITES_ERROR":
+      return {
+        ...store,
+        favorites: {
+          ...store.favorites,
+          loading: false,
+          error: action.payload,
         },
       };
 
