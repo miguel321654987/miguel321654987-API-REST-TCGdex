@@ -240,16 +240,13 @@ export const getActions = (store, dispatch) => {
 
       // Si el input está vacío, limpiamos el resultado superpuesto.
       if (!filtro) {
-        dispatch({
-          type: "API_FILTERED_SUCCESS",
-          payload: [],
-        });
+        dispatch({ type: "API_SEARCH_CLEAR" });
 
         return [];
       }
 
       // Esta búsqueda es independiente del catálogo ligero de Home.
-      dispatch({ type: "API_FILTERED_LOADING" });
+      dispatch({ type: "API_SEARCH_LOADING" });
 
       try {
         // No usamos store.api.list porque solo contiene datos resumidos.
@@ -288,7 +285,7 @@ export const getActions = (store, dispatch) => {
         });
 
         dispatch({
-          type: "API_FILTERED_SUCCESS",
+          type: "API_SEARCH_SUCCESS",
           payload: filtradas,
         });
 
