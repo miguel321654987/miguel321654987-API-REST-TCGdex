@@ -1,6 +1,5 @@
 import defaultImage from "../../assets/no-card-image.png";
-import { closeModalSafely } from "../utils.js";
-import { filterPokemons } from "../utils.js";
+import { closeModalSafely, normalizeCard } from "../utils.js";
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:3000";
 
@@ -149,16 +148,15 @@ export const getActions = (store, dispatch) => {
       }
 
       // Publicamos solo una versión ligera para Home.
-      const cartasBasicas = listaCartas.map((carta) => ({
-        id: String(carta.id),
-        pokemon_name: carta.name,
-        image: carta.image ? `${carta.image}/low.png` : defaultImage,
-      }));
+      // buscarCartasPorFiltro → 9 campos (versión completa para overlay)
+      const cartasNormalizadas = listaCartas.map((carta) =>
+        normalizeCard(carta, defaultImage),
+      );
 
       // Home guarda este array ligero en api.list.
       dispatch({
         type: "API_LIST_SUCCESS",
-        payload: cartasBasicas,
+        payload: cartasNormalizadas,
       });
     },
 
@@ -237,60 +235,42 @@ export const getActions = (store, dispatch) => {
     //  👾 BÚSQUEDA/FILTRO EN NAVBAR INDEPENDIENTE DE HOME ===
     buscarCartasPorFiltro: async (filtros = {}) => {
       const filtro = String(filtros.inputText || "").trim();
-
       // Si el input está vacío, limpiamos el resultado superpuesto.
       if (!filtro) {
         dispatch({ type: "API_SEARCH_CLEAR" });
-
         return [];
       }
-
-      // Esta búsqueda es independiente del catálogo ligero de Home.
       dispatch({ type: "API_SEARCH_LOADING" });
-
       try {
-        // No usamos store.api.list porque solo contiene datos resumidos.
-        // Tampoco usamos ?name= porque el filtro puede buscar por cualquier campo.
+        // Solicitamos 24 cartas desde la API de TCGdex
         const response = await fetch(
-          "https://api.tcgdex.net/v2/en/cards?pagination:page=1&pagination:itemsPerPage=24",
+          "https://api.tcgdex.net/v2/en/cards?pagination:page=1&pagination:itemsPerPage=128",
         );
-
         if (!response.ok) {
           throw new Error(
             `Error al obtener cartas para filtrar: HTTP ${response.status}`,
           );
         }
-
         const data = await response.json();
-
-        // TCGdex puede devolver directamente un array o un objeto con "cards".
         const cartasCompletas = Array.isArray(data) ? data : data.cards || [];
-
-        // Normalizamos los campos que filterPokemons necesita.
-        const cartasNormalizadas = cartasCompletas.map((carta) => ({
-          ...carta,
-          id: String(carta.id),
-          pokemon_name: carta.name,
-          image: carta.image ? `${carta.image}/low.png` : defaultImage,
-          set: carta.set || {},
-          rarity: carta.rarity || "",
-          types: carta.types || [],
-          hp: carta.hp || "",
-          illustrator: carta.illustrator || "",
-          attacks: carta.attacks || [],
-        }));
-
-        // filterPokemons(pokemons, filters = {})  aplica el filtro genérico sobre todos los campos:
-        // ID, nombre, tipo, HP, rareza, expansión, artista y ataques.
-        const filtradas = filterPokemons(cartasNormalizadas, {
-          inputText: filtro,
-        });
-
+        const cartasNormalizadas = cartasCompletas.map((carta) =>
+          normalizeCard(carta, defaultImage),
+        );
+        // Filtrado por coincidencia de letras y ordenación alfabética
+        const filtradas = cartasNormalizadas
+          .filter((carta) =>
+            (carta.pokemon_name || carta.name || "")
+              .toLowerCase()
+              .includes(filtro.toLowerCase()),
+          )
+          .sort((a, b) =>
+            (a.pokemon_name || "").localeCompare(b.pokemon_name || ""),
+          )
+          .slice(0, 24);
         dispatch({
           type: "API_SEARCH_SUCCESS",
           payload: filtradas,
         });
-
         return filtradas;
       } catch (err) {
         console.error("Error al buscar cartas por filtro:", err);
@@ -299,11 +279,9 @@ export const getActions = (store, dispatch) => {
           type: "API_ERROR",
           payload: err.message,
         });
-
         return [];
       }
     },
-
     //  👾 PETICIONES DETALLE POKÉMON ===
     obtenerDetallePokemon: async (id) => {
       try {

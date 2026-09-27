@@ -1,25 +1,34 @@
+import { useState, useEffect } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import useGlobalReducer from "../hooks/useGlobalReducer.jsx";
 import { openModalSafely } from "../utils.js";
 import { toast } from "react-toastify";
-
 export const Navbar = () => {
   const { store, actions } = useGlobalReducer();
   const navigate = useNavigate();
-
-  // Busqueda por parámetro filtrado: Obtenemos el valor del parámetro 'search' de la URL
   const [searchParams] = useSearchParams();
-  // searchName es el valor del parámetro 'filter' o "" si no existe
   const searchFilter = searchParams.get("filter") || "";
-
-  // Actualiza el parámetro de búsqueda mientras el usuario escribe
+  // Estado local para respuesta instantánea de la UI
+  const [inputValue, setInputValue] = useState(searchFilter);
+  // Sincronizar estado local si la URL cambia externamente
+  useEffect(() => {
+    setInputValue(searchFilter);
+  }, [searchFilter]);
+  // DEBOUNCE EFICIENTE (300ms)
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      // Evitar ejecutar si no ha cambiado el filtro
+      if (inputValue !== searchFilter) {
+        actions.buscarCartasPorFiltro({ inputText: inputValue });
+        navigate(
+          inputValue ? `/?filter=${encodeURIComponent(inputValue)}` : "/",
+        );
+      }
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [inputValue]);
   const handleFilter = (event) => {
-    const filterValue = event.target.value;
-
-    actions.buscarCartasPorFiltro({ inputText: filterValue });
-
-    // Conserva el valor escrito en la URL para que Home pueda leerlo.
-    navigate(filterValue ? `/?filter=${encodeURIComponent(filterValue)}` : "/");
+    setInputValue(event.target.value);
   };
 
   // Garantizamos que 'favoritos' siempre sea un array para evitar errores de .length
@@ -44,7 +53,7 @@ export const Navbar = () => {
             type="search"
             className="form-control form-control-sm"
             placeholder="Buscar cartas"
-            value={searchFilter} //Fuerza al input a mostrar SIEMPRE lo que dice la URL
+            value={inputValue} //Fuerza al input a mostrar SIEMPRE lo que dice la URL
             onChange={handleFilter}
             aria-label="Buscar cartas"
             style={{ maxWidth: "250px" }}
