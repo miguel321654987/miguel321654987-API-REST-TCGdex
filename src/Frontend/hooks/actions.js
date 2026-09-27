@@ -234,7 +234,7 @@ export const getActions = (store, dispatch) => {
       }
     },
 
-    //  👾 BÚSQUEDA/FILTRO INDEPENDIENTE DE HOME ===
+    //  👾 BÚSQUEDA/FILTRO EN NAVBAR INDEPENDIENTE DE HOME ===
     buscarCartasPorFiltro: async (filtros = {}) => {
       const filtro = String(filtros.inputText || "").trim();
 
@@ -251,7 +251,9 @@ export const getActions = (store, dispatch) => {
       try {
         // No usamos store.api.list porque solo contiene datos resumidos.
         // Tampoco usamos ?name= porque el filtro puede buscar por cualquier campo.
-        const response = await fetch("https://api.tcgdex.net/v2/en/cards");
+        const response = await fetch(
+          "https://api.tcgdex.net/v2/en/cards?pagination:page=1&pagination:itemsPerPage=24",
+        );
 
         if (!response.ok) {
           throw new Error(
