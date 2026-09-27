@@ -228,3 +228,35 @@ export const filterPokemons = (pokemons, filters = {}) => {
     );
   });
 };
+
+//* 🔧 HELPER PARA NORMALIZAR DATOS DE TCG
+export const normalizeCard = (carta, defaultImage) => ({
+  ...carta,
+  id: String(carta.id),
+  pokemon_name: carta.name,
+  image: carta.image ? `${carta.image}/low.png` : defaultImage,
+  set: carta.set || {},
+  rarity: carta.rarity || "",
+  types: carta.types || [],
+  hp: carta.hp || "",
+  illustrator: carta.illustrator || "",
+  attacks: carta.attacks || [],
+});
+
+//* 🔧 BÚSQUEDA SOLO POR NOMBRE / ID (COINCIDENCIA EXACTA)
+export const filterByName = (pokemons, text = "") => {
+  const normalize = (v) =>
+    String(v ?? "")
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .trim();
+  const q = normalize(text);
+  if (!q) return pokemons;
+  return (pokemons || []).filter(
+    (p) =>
+      normalize(p.pokemon_name) === q ||
+      normalize(p.name) === q ||
+      normalize(p.id) === q,
+  );
+};

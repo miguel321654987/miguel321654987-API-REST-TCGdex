@@ -9,7 +9,8 @@ export const Home = () => {
 
   // 1) El catálogo base de Home sigue siendo store.api.list.
   // 2) El resultado de un filtro del Sidebar se guarda en store.api.filtered.
-  // 3) La clave es decidir qué lista renderizar en cada momento.
+  // 3) El resultado de la búsqueda del Navbar se guarda en store.api.search.
+  // 4) La clave es decidir qué lista renderizar en cada momento.
   const {
     list: pokemons,
     filtered,
@@ -29,28 +30,13 @@ export const Home = () => {
   const hasActiveFilters =
     Array.isArray(filtered) && filtered.length > 0 && filtered !== pokemons;
 
-  // Variable final que decide qué listado mostrar en pantalla.
-  /* Esto es lo que corrige el bug: no se sigue renderizando el listado base
-  cuando ya hay un resultado de filtros en store.api.filtered.*/
-  const cartasAMostrar =
-    hasActiveFilters && Array.isArray(filtered) && filtered.length > 0
+  // Prioridad: búsqueda activo Navbar -> filtros Sidebar -> catálogo base.
+  const isSearching = Boolean(searchFilter.trim());
+  const cartasAMostrar = isSearching
+    ? search
+    : hasActiveFilters && Array.isArray(filtered) && filtered.length > 0
       ? filtered
       : pokemons;
-
-  /* Si hay un filtro textual del Navbar, mostramos la primera coincidencia
-  como "overlay" encima del listado.*/
-  const pokemonEncontrado =
-    searchFilter.trim() && Array.isArray(search) && search.length > 0
-      ? search[0]
-      : null;
-
-  // Si la búsqueda está cargando pero no hay resultados aún...
-  const searchMessage =
-    searchFilter.trim() && searchLoading
-      ? "Buscando..."
-      : searchFilter.trim() && Array.isArray(search) && search.length === 0
-        ? "No se encontraron coincidencias."
-        : null;
 
   // Reutilizamos la lista de favoritos del store para pintar el corazón.
   const esFavorito = (pokemonId) =>
@@ -82,59 +68,27 @@ export const Home = () => {
         ¡Bienvenido a la PokeApp POKEMONWORLD!
       </h1>
 
-      {/* Si hay una coincidencia exacta en la búsqueda del Navbar, la mostramos
-          destacada en una card superpuesta. */}
-      {pokemonEncontrado && (
-        <div className="search-result-overlay">
-          <div className="card bg-dark text-light border-warning shadow-lg">
-            <img
-              src={pokemonEncontrado.image}
-              alt={pokemonEncontrado.pokemon_name}
-              className="card-img-top p-3"
-            />
-
-            <div className="card-body">
-              <h2 className="h5 text-warning">
-                {pokemonEncontrado.pokemon_name}
-              </h2>
-
-              <p className="text-secondary mb-3">ID: {pokemonEncontrado.id}</p>
-
-              <Link
-                to={`/pokemon/${pokemonEncontrado.id}`}
-                className="btn btn-warning btn-sm w-100"
-              >
-                Ver detalles
-              </Link>
-            </div>
-          </div>
-        </div>
-      )}
-      {/* Si searchMessage tiene contenido (es truthy), se renderiza el bloque <div>.
-      Si está vacío o es null, no se muestra nada */}
-      {searchMessage && (
+      {/* Estado de carga específico para búsqueda del Navbar */}
+      {searchFilter.trim() && searchLoading ? (
         <div className="mt-4">
-          <p className="text-warning">{searchMessage}</p>
-        </div>
-      )}
-      {listLoading ? (
-        <div className="mt-4">
-          <p className="text-warning">Conectando con el servidor...</p>
+          <p className="text-warning">Buscando...</p>
           <div className="spinner-border text-warning" role="status"></div>
+        </div>
+      ) : !cartasAMostrar || cartasAMostrar.length === 0 ? (
+        <div className="row g-4 justify-content-center mt-2">
+          <p className="text-danger">
+            {searchFilter.trim()
+              ? "No se encontraron coincidencias con ese nombre."
+              : "No se recibieron datos desde el servidor de TCGdex."}
+          </p>
         </div>
       ) : error ? (
         <p className="text-danger mt-4">
           Hubo un error al cargar las cartas: {error}
         </p>
-      ) : !cartasAMostrar || cartasAMostrar.length === 0 ? (
-        <div className="row g-4 justify-content-center mt-2">
-          <p className="text-danger">
-            No se recibieron datos desde el servidor de TCGdex.
-          </p>
-        </div>
       ) : (
         // Aquí se renderiza la lista final según el estado del filtro.
-        // Si hay filtros, muestra filtered; si no, muestra el catálogo base.
+        // Si hay búsqueda, muestra search; si hay filtros, muestra filtered; si no, el catálogo base.
         <div className="row g-4 justify-content-center mt-2">
           {cartasAMostrar.map((pokemon) => {
             const favoritoActual = esFavorito(pokemon.id);
