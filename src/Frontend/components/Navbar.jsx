@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import useGlobalReducer from "../hooks/useGlobalReducer.jsx";
 import { openModalSafely } from "../utils.js";
@@ -8,25 +8,36 @@ export const Navbar = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const searchFilter = searchParams.get("filter") || "";
-  // Estado local para respuesta instantánea de la UI
+
+  // Estado local SOLO para el "borrador" en input mientras se teclea (uncontrolled → controlled híbrido)
   const [inputValue, setInputValue] = useState(searchFilter);
-  // Sincronizar estado local si la URL cambia externamente
+
+  // Ref: true si el cambio de URL vino de NUESTRO debounce (evita fight)
+  const isInternalNavigation = useRef(false);
+
+  // 1. Sincronización EXTERNA (botón atrás/adelante, link directo)
   useEffect(() => {
-    setInputValue(searchFilter);
+    if (!isInternalNavigation.current) {
+      setInputValue(searchFilter);
+    }
+    isInternalNavigation.current = false; // reset para próximo ciclo
   }, [searchFilter]);
-  // DEBOUNCE EFICIENTE (300ms)
+
+  // 2. DEBOUNCE: usuario teclea → actualiza URL → dispara búsqueda
   useEffect(() => {
     const timer = setTimeout(() => {
-      // Evitar ejecutar si no ha cambiado el filtro
       if (inputValue !== searchFilter) {
+        isInternalNavigation.current = true; // ← marcamos navegación propia
         actions.buscarCartasPorFiltro({ inputText: inputValue });
         navigate(
           inputValue ? `/?filter=${encodeURIComponent(inputValue)}` : "/",
+          { replace: true },
         );
       }
     }, 300);
     return () => clearTimeout(timer);
-  }, [inputValue]);
+  }, [inputValue, searchFilter, navigate, actions]);
+
   const handleFilter = (event) => {
     setInputValue(event.target.value);
   };
@@ -48,14 +59,14 @@ export const Navbar = () => {
         </Link>
 
         <div className="d-flex align-items-center gap-2">
-          {/* Nuevo: buscador situado en el Navbar */}
+          {/* Buscador situado en el Navbar */}
           <input
             type="search"
             className="form-control form-control-sm"
-            placeholder="Buscar cartas"
+            placeholder="Buscar carta por nombre"
             value={inputValue} //Fuerza al input a mostrar SIEMPRE lo que dice la URL
             onChange={handleFilter}
-            aria-label="Buscar cartas"
+            aria-label="Buscar carta por nombre"
             style={{ maxWidth: "250px" }}
           />
 

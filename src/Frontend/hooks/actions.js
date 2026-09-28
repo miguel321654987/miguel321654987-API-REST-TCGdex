@@ -242,36 +242,37 @@ export const getActions = (store, dispatch) => {
       }
       dispatch({ type: "API_SEARCH_LOADING" });
       try {
-        // Solicitamos 24 cartas desde la API de TCGdex
+        // Usamos la búsqueda nativa de TCGdex con coincidencia parcial (like:)
+        // La API devuelve hasta 128 resultados paginados, ordenados por relevancia
         const response = await fetch(
-          "https://api.tcgdex.net/v2/en/cards?pagination:page=1&pagination:itemsPerPage=128",
+          `https://api.tcgdex.net/v2/en/cards?name=like:${encodeURIComponent(filtro)}&pagination:page=1&pagination:itemsPerPage=24`,
         );
         if (!response.ok) {
-          throw new Error(
-            `Error al obtener cartas para filtrar: HTTP ${response.status}`,
-          );
+          throw new Error(`Error al buscar cartas: HTTP ${response.status}`);
         }
         const data = await response.json();
         const cartasCompletas = Array.isArray(data) ? data : data.cards || [];
+        // Normalizamos directamente - la API ya filtra
         const cartasNormalizadas = cartasCompletas.map((carta) =>
           normalizeCard(carta, defaultImage),
         );
-        // Filtrado por coincidencia de letras y ordenación alfabética
-        const filtradas = cartasNormalizadas
-          .filter((carta) =>
-            (carta.pokemon_name || carta.name || "")
-              .toLowerCase()
-              .includes(filtro.toLowerCase()),
-          )
-          .sort((a, b) =>
-            (a.pokemon_name || "").localeCompare(b.pokemon_name || ""),
-          )
-          .slice(0, 24);
+
+        // Orden local: 1) Prefijo (startsWith), 2) Alfabético dentro de cada grupo
+        const term = filtro.toLowerCase();
+        cartasNormalizadas.sort((a, b) => {
+          const aName = a.name.toLowerCase();
+          const bName = b.name.toLowerCase();
+          const aStarts = aName.startsWith(term) ? 0 : 1;
+          const bStarts = bName.startsWith(term) ? 0 : 1;
+          if (aStarts !== bStarts) return aStarts - bStarts;
+          return aName.localeCompare(bName);
+        });
+
         dispatch({
           type: "API_SEARCH_SUCCESS",
-          payload: filtradas,
+          payload: cartasNormalizadas,
         });
-        return filtradas;
+        return cartasNormalizadas;
       } catch (err) {
         console.error("Error al buscar cartas por filtro:", err);
 
@@ -282,6 +283,7 @@ export const getActions = (store, dispatch) => {
         return [];
       }
     },
+
     //  👾 PETICIONES DETALLE POKÉMON ===
     obtenerDetallePokemon: async (id) => {
       try {
