@@ -6,14 +6,14 @@ from flask import Flask, jsonify
 from flask_migrate import Migrate
 from flask_cors import CORS
 from dotenv import load_dotenv
-from Backend.utils import APIException, generate_sitemap
-from Backend.admin import setup_admin
-from Backend.models import db, FilterOption
+from api.utils import APIException, generate_sitemap
+from api.admin import setup_admin
+from api.models import db, FilterOption
 from flask_jwt_extended import JWTManager
-from Backend.routes import api
-from Backend.extensions import bcrypt
+from api.routes import api
+from api.extensions import bcrypt
 # Importamos la función pura de sincronización para el seeding automático al arrancar
-from Backend.blueprints.pokemon_bp import run_filter_sync
+from api.blueprints.pokemon_bp import run_filter_sync
 from sqlalchemy import select
 
 load_dotenv()
