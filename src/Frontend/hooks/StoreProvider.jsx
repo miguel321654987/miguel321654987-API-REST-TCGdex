@@ -1,5 +1,5 @@
 import { useReducer, useEffect } from "react";
-import storeReducer, { initialStore } from "../store";
+import storeReducer, { initialStore } from "../store.js";
 import { getActions } from "./actions.js";
 import { StoreContext } from "./useGlobalReducer.jsx";
 

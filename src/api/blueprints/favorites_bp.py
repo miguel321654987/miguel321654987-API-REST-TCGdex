@@ -1,8 +1,8 @@
 from flask import Blueprint, request, jsonify
-from Backend.models import db, User, Pokemon
+from api.models import db, User, Pokemon
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
-from Backend.utils import APIException  # Importamos tu clase de excepciones
+from api.utils import APIException  # Importamos tu clase de excepciones
 
 # Creamos el Blueprint exclusivo para la gestión de favoritos
 favorites_bp = Blueprint('favorites', __name__)
